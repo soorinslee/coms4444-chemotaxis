@@ -73,7 +73,7 @@ The following provides the API available for students to use:
 Classes that are used by the simulator include:
 
 ## Piazza
-If you have any questions about the project, please post them in the [Piazza forum](https://piazza.com/class/kdjd7v2b8925zz?cid=8) for the course, and an instructor will reply to them as soon as possible. Any updates to the project itself will be available on Piazza.
+If you have any questions about the project, please post them in the [Piazza forum](https://piazza.com/class/kdjd7v2b8925zz?cid=8) for the course, and an instructor will reply to them as soon as possible. Any updates to the project itself will be available in Piazza.
 
 
 ## Disclaimer
