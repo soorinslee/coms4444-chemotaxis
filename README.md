@@ -42,7 +42,7 @@ Please follow these instructions for installing Git and forking repositories:
 
 ## Implementation
 
-You will be creating your own controller and agent that extends the simulator's abstract controller and agent, respectively. Please follow these steps to begin your implementation:
+You will be creating your own controller and agent that extend the simulator's abstract controller and agent, respectively. Please follow these steps to begin your implementation:
 1.  Enter the `coms4444-chemotaxis/src/chemotaxis` directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `chemotaxis` directory.
 2.  Create Java files called `Controller.java` and `Agent.java` inside your newly-created folder.
 3.  Copy the following code into `Controller` (the TODOs indicate all changes you need to make):
