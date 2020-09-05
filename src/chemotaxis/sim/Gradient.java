@@ -1,23 +1,26 @@
-package sim;
+package chemotaxis.sim;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Gradient {
+public class Gradient implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private Map<ChemicalType, Double> concentrations = new HashMap<>();
 	private boolean isBlocked = false;
 	
 	public Gradient() {
-		new Gradient(false);
+		new Gradient(true);
 	}
 	
-	public Gradient(boolean isBlocked) {
+	public Gradient(boolean isOpen) {
 		ChemicalType[] chemicalTypes = ChemicalType.values();
 		for(ChemicalType chemicalType : chemicalTypes)
 			concentrations.put(chemicalType, 0.0);
+		this.isBlocked = !isOpen;
 	}
 	
 	public void applyConcentration(ChemicalType chemicalType) {
@@ -62,10 +65,3 @@ public class Gradient {
 		return "(" + String.join(", ", stringFormatElements) + ")";
 	}
 }
-
-// Create a Gradient that contains concentrations (double type) for each ChemicalType object
-//* “applyConcentration” method (pass in ChemicalType) - sets concentration of chemical type to 1.0, void
-//* “getConcentration” method (pass in ChemicalType) - returns concentration
-//* “toString” method - returns an (r, g, b) coordinate string for the different concentrations of each ChemicalType respectively
-//* All chemicals getter
-//* All chemicals setter (pass in map of ChemicalType to concentration)

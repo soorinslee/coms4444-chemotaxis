@@ -1,4 +1,4 @@
-package sim;
+package chemotaxis.sim;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;

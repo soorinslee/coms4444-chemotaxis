@@ -1,4 +1,4 @@
-package sim;
+package chemotaxis.sim;
 
 import java.io.*;
 import java.net.*;

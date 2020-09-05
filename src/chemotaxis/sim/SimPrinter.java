@@ -1,4 +1,4 @@
-package sim;
+package chemotaxis.sim;
 
 public class SimPrinter {
 

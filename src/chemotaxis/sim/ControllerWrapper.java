@@ -1,5 +1,6 @@
-package sim;
+package chemotaxis.sim;
 
+import java.awt.Point;
 
 public class ControllerWrapper {
 
@@ -15,7 +16,7 @@ public class ControllerWrapper {
         this.timer = new Timer();
     }
 
-    public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Gradient[][] grid) {
+    public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid) {
 
     	Log.writeToVerboseLogFile("Team " + this.controllerName + "'s controller applying chemicals on turn " + currentTurn + "...");
         
@@ -24,7 +25,7 @@ public class ControllerWrapper {
         try {
             if(!timer.isAlive())
             	timer.start();
-            timer.callStart(() -> { return controller.applyChemicals(currentTurn, chemicalsRemaining, grid); });
+            timer.callStart(() -> { return controller.applyChemicals(currentTurn, chemicalsRemaining, currentLocation, grid); });
             chemicalPlacement = timer.callWait(timeout);
         }
         catch(Exception e) {
