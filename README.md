@@ -42,13 +42,104 @@ Please follow these instructions for installing Git and forking repositories:
 
 ## Implementation
 
+You will be creating your own controller and agent that extend the simulator's abstract controller and agent, respectively. Please follow these steps to begin your implementation:
+1.  Enter the `coms4444-chemotaxis/src/chemotaxis` directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `chemotaxis` directory.
+2.  Create Java files called `Controller.java` and `Agent.java` inside your newly-created folder.
+3.  Copy the following code into `Controller` (the TODOs indicate all changes you need to make):
+```
+package chemotaxis.gx; // TODO modify the package name to reflect your team
+
+import java.awt.Point;
+
+import chemotaxis.sim.ChemicalPlacement;
+import chemotaxis.sim.Gradient;
+import chemotaxis.sim.SimPrinter;
+
+public class Controller extends chemotaxis.sim.Controller {
+
+   /**
+    * Controller constructor
+    *
+    * @param start       start cell coordinates
+    * @param target      target cell coordinates
+    * @param simTime     simulation time
+    * @param budget      chemical budget
+    * @param seed        random seed
+    * @param simPrinter  simulation printer
+    *
+    */
+   public Controller(Point start, Point target, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
+      super(start, target, simTime, budget, seed, simPrinter);
+   }
+
+   /**
+    * Apply chemicals to the map
+    *
+    * @param currentTurn         current turn in the simulation
+    * @param chemicalsRemaining  number of chemicals remaining
+    * @param currentLocation     current location of the agent
+    * @param grid                game grid/map
+    * @return                    a cell location and list of chemicals to apply
+    *
+    */
+   @Override
+   public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid) {
+      // TODO add your code here to apply chemicals
+
+      return null; // TODO modify the return statement to return your chemical placement
+   }
+}
+```
+4.  Copy the following code into `Agent` (the TODOs indicate all changes you need to make):
+```
+package chemotaxis.gx; // TODO modify the package name to reflect your team
+
+import java.util.Map;
+
+import chemotaxis.sim.DirectionType;
+import chemotaxis.sim.Gradient;
+import chemotaxis.sim.Move;
+import chemotaxis.sim.SimPrinter;
+
+public class Agent extends chemotaxis.sim.Agent {
+
+   /**
+    * Agent constructor
+    *
+    * @param simPrinter  simulation printer
+    *
+    */
+   public Agent(SimPrinter simPrinter) {
+      super(simPrinter);
+   }
+
+   /**
+    * Move agent
+    *
+    * @param randomNum        random number available for agents
+    * @param previousState    byte of previous state
+    * @param currentGradient  current cell's gradient
+    * @param neighborMap      map of cell's neighbors
+    * @return                 agent move
+    *
+    */
+   @Override
+   public Move makeMove(Integer randomNum, Byte previousState, Gradient currentGradient, Map<DirectionType, Gradient> neighborMap) {
+      // TODO add your code here to move the agent
+
+      return null; // TODO modify the return statement to return your agent move
+   }
+}
+```
+
 
 ## Submission
-You will be submitting your created team folder, which includes the implemented `Player` class and any other helper classes you create. We ask that you please do not modify any code in the `sim` or `random` directories, especially the simulator, when you submit your code. This makes it easier for us to merge in your code.
+You will be submitting your created team folder, which includes the implemented `Controller` class, `Agent` class, and any other helper classes you create. We ask that you please do not modify any code in the `sim` or `dummy` directories, especially the simulator, when you submit your code. This makes it easier for us to merge in your code.
 
 To submit your code for each class and for the final deliverable of the project, you will create a pull request to merge your forked repository's *master* branch into the TA's base repository's *master* branch. The TA will merge the commits from the pull request after the deliverable deadline has passed. The base repository will be updated before the start of the next class meeting.
 
-Additionally, please comment out or remove any print statements you may have included, as flooding the console with print statements during the simulation will weaken performance and readability.
+In order to improve performance and readability of code during simulations, we would like to prevent flooding the console with print statements. Therefore, we have provided a printer called `SimPrinter` to allow for toggled printing to the console. When adding print statements for testing/debugging in your code, please make sure to use the methods in `SimPrinter` (instance available in `Player`) rather than use `System.out` statements directly. Additionally, please set the `enablePrints` default variable in `Simulator` to *true* in order to enable printing. This also allows us to not require that you comment out any print statements in your code submissions.
+
 
 ## Simulator
 
@@ -56,10 +147,10 @@ Additionally, please comment out or remove any print statements you may have inc
 1.  On your command line, *fork* the Git repository, and then clone the forked version. Do NOT clone the original repository.
 2.  Enter `cd coms4444-chemotaxis/src` to enter the source folder of the repository.
 3.  Run `make clean` and `make compile` to clean and compile the code.
-4.  Update the make file (file called `Makefile`) with the teams participating in the game, as well as with any simulator arguments.
-5.  Run one of the following:
-    * `make run`: view results from the command line
-    * `make gui`: view results from the GUI
+4.  Run one of the following:
+    * `make report`: report simulation results to the console/log file using command-line simulation arguments
+    * `make verify`: verify that a map configuration is valid
+    * `make gui`: run simulations from the GUI with live modifications to simulation arguments
 
 #### Simulator arguments:
 
