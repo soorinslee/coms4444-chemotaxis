@@ -389,7 +389,7 @@ public class Simulator {
 				} catch (Exception e) {
 					Log.writeToLogFile("Unable to load or run agent: " + e.getMessage());
 				}
-								
+				
 				diffuseCells();
 			}
 			
