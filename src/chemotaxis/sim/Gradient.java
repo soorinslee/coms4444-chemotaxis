@@ -12,6 +12,11 @@ public class Gradient implements Serializable {
 	private Map<ChemicalType, Double> concentrations = new HashMap<>();
 	private boolean isBlocked = false;
 	
+
+	public enum ChemicalType implements Serializable {
+		RED, GREEN, BLUE
+	}
+	
 	public Gradient() {
 		new Gradient(true);
 	}
@@ -53,7 +58,7 @@ public class Gradient implements Serializable {
 	public boolean isOpen() {
 		return !isBlocked;
 	}
-	
+		
 	@Override
 	public String toString() {
 		List<String> stringFormatElements = new ArrayList<>();

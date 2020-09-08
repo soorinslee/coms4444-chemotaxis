@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>PPS 2020 - Chemotaxis</title>
+
+    <style type="text/css">
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: black;
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+      }
+
+      h2 {
+        text-align: center;
+        color: white;
+      }
+
+      .simulate {
+        background-color: white;
+        color: black;
+      }
+
+      a {
+        text-decoration: none;
+        display: inline-block;
+        padding: 8px 16px;
+      }
+
+      a:hover {
+        background-color: #ddd;
+        color: black;
+        cursor: pointer;
+      }
+
+      #setup {
+        overflow: hidden;
+        width: 100%;
+        height: 15%;
+      }
+
+      #simulation {
+        overflow: hidden;
+        width: 100%;
+        height: 70%;
+      }
+
+      #parameters {
+        width: 70%;
+        height: 100%;
+        margin: 10px;
+        padding-left: 5px;
+        float: left;
+      }
+
+      #parametersTop {
+        width: 100%;
+        height: 50%;
+        margin: 10px;
+        padding-right: 5px;
+        float: left;
+      }
+
+      #parametersTop1 {
+        width: 24%;
+        float: left;
+      }
+
+      #parametersTop2 {
+        width: 24%;
+        float: left;
+      }
+
+      #parametersTop3 {
+        width: 42%;
+        float: left;
+      }
+
+      #parametersBottom {
+        width: 100%;
+        height: 50%;
+        margin: 10px;
+        padding-right: 5px;
+        float: left;
+      }
+
+      #simulationStats {
+        width: 48%;
+        height: 100%;
+        margin: 10px;
+        padding-right: 5px;
+        float: right;
+      }
+
+    </style>
+
+  </head>
+  <body>
+
+    <h1>PPS 2020 - Chemotaxis</h1>
+
+    <div id="setup">
+      <div id="parameters">
+        <div id="parametersTop">
+          <div id="parametersTop1">
+            <div style="color:limegreen;">Turns: <input type="text" id="turns" size="10"></div>
+            <br/>
+            <div style="color:limegreen;">Budget: <input type="text" id="budget" size="10"></div>
+            <br/>
+          </div>
+          <div id="parametersTop2">
+            <div style="color:limegreen;">Seed: <input type="text" id="seed" size="10"></div>
+            <br/>
+            <div style="color:limegreen;">FPM: <input type="text" id="fpm" size="10"></div>
+            <br/>
+            <a onClick='sendFields()' class='simulate'>Start Simulation</a>
+          </div>
+          <div id="parametersTop3">
+            <div style="color:limegreen;">Map: <input type="file" id="map"></div>
+          </div>
+        </div>
+        <div id="parametersBottom"></div>
+      </div>
+      <div id="simulationStats"></div>
+    </div>
+    <div id="simulation"></div>
+
+    <script>
+      var regexAlpha = /[^a-zA-Z]/g;
+      var regexNumeric = /[^0-9]/g;
+
+      var simulationStarted = false;
+
+      function sortAlphaNumeric(a, b) {
+          var aAlpha = a.replace(regexAlpha, "");
+          var bAlpha = b.replace(regexAlpha, "");
+          if(aAlpha === bAlpha) {
+              var aNumeric = parseInt(a.replace(regexNumeric, ""), 10);
+              var bNumeric = parseInt(b.replace(regexNumeric, ""), 10);
+              return aNumeric === bNumeric ? 0 : aNumeric > bNumeric ? 1 : -1;
+          }
+          return aAlpha > bAlpha ? 1 : -1;
+      }
+
+      function sendFields() {
+          var turns = document.getElementById("turns").value;
+          var budget = document.getElementById("budget").value;
+          var seed = document.getElementById("seed").value;
+          var fpm = document.getElementById("fpm").value;
+          var map = document.getElementById("map").value.replace("C:\\fakepath\\", "");
+
+          if(!Number.isInteger(parseInt(turns)) || turns != parseInt(turns)) {
+              alert("The number of turns must be a valid integer!");
+              return;
+          }
+          if(!Number.isInteger(parseInt(budget)) || budget != parseInt(budget)) {
+              alert("The budget must be a valid integer!");
+              return;
+          }
+
+          if(!Number.isInteger(parseInt(seed)) || seed != parseInt(seed)) {
+              alert("The random seed must be a valid integer!");
+              return;
+          }
+
+          if(!Number.isInteger(parseInt(fpm)) || fpm != parseInt(fpm)) {
+              alert("The frames per minute must be a valid integer!");
+              return;
+          }
+
+          console.log("Turns: " + turns);
+          console.log("Budget: " + budget);
+          console.log("Seed: " + seed);
+          console.log("FPM: " + fpm);
+          console.log("Map: " + map);
+      }
+
+      function process(data) {
+          var result = JSON.parse(data)
+
+          var refresh = parseFloat(result.refresh);
+          var currentTurn = simulationStarted ? result.currentTurn : 0;
+          var totalTurns = simulationStarted ? result.totalTurns : 0;
+
+          var turnElement = document.getElementById("turn");
+          turnElement.innerHTML = `Turn: ${currentTurn}/${totalTurns}`;
+
+          return refresh;
+      }
+
+      var latest_version = -1;
+
+      function ajax(version, retries, timeout) {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onload = (function() {
+              var refresh = -1;
+              try {
+                  if(xhttp.readyState != 4)   
+                      throw "Incomplete HTTP request: " + xhttp.readyState;
+                  if(xhttp.status != 200)
+                      throw "Invalid HTTP status: " + xhttp.status;
+
+                  refresh = process(xhttp.responseText);
+                  if(latest_version < version)
+                      latest_version = version;
+                  else
+                      refresh = -1;
+              } catch(message) {
+                  alert(message);
+              }
+
+              if(refresh >= 0)
+                  setTimeout(function() { ajax(version + 1, 10, 100); }, refresh);
+          });
+          xhttp.onabort = (function() {});
+          xhttp.onerror = (function() {});
+          xhttp.ontimeout = (function() {
+              if(version <= latest_version)
+                  console.log("AJAX timeout (version " + version + " <= " + latest_version + ")");
+              else if(retries == 0)
+                  location.reload(true);
+              else {
+                  console.log("AJAX timeout (version " + version + ", retries: " + retries + ")");
+                  ajax(version, retries - 1, timeout * 2);
+              }
+          });
+          xhttp.open("GET", "data.txt", true);
+          xhttp.responseType = "text";
+          xhttp.timeout = timeout;
+          xhttp.send();
+      }
+
+      ajax(1, 10, 100);
+    </script>
+
+    <h2 id="turn">Turn: 0/0</h2>
+  </body>
+</html>

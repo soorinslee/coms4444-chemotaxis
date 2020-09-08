@@ -2,9 +2,9 @@ package chemotaxis.dummy;
 
 import java.util.Map;
 
-import chemotaxis.sim.ChemicalType;
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.Gradient;
+import chemotaxis.sim.Gradient.ChemicalType;
 import chemotaxis.sim.Move;
 import chemotaxis.sim.SimPrinter;
 
@@ -36,7 +36,7 @@ public class Agent extends chemotaxis.sim.Agent {
 		
 		ChemicalType chosenChemicalType = ChemicalType.BLUE;
 		
-		double highestConcentration = -1.0;
+		double highestConcentration = 0.0;
 		for(DirectionType directionType : neighborMap.keySet()) {
 			if(highestConcentration < neighborMap.get(directionType).getConcentration(chosenChemicalType)) {
 				highestConcentration = neighborMap.get(directionType).getConcentration(chosenChemicalType);

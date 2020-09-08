@@ -2,6 +2,9 @@ package chemotaxis.sim;
 
 import java.awt.Point;
 import java.util.List;
+
+import chemotaxis.sim.Gradient.ChemicalType;
+
 import java.util.ArrayList;
 
 public class ChemicalPlacement {

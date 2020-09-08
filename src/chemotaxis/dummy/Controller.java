@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 import chemotaxis.sim.ChemicalPlacement;
-import chemotaxis.sim.ChemicalType;
 import chemotaxis.sim.Gradient;
+import chemotaxis.sim.Gradient.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
