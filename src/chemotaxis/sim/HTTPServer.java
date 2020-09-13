@@ -71,7 +71,7 @@ public class HTTPServer {
         
         String line = new String(buffer, 0, index);
         String[] parts = line.split(" ");
-        if(parts.length != 3 || !parts[0].equals("GET") || !parts[1].startsWith("/") || !parts[2].equals("HTTP/1.1")) {
+        if(parts.length != 3 || !parts[1].startsWith("/") || !parts[2].equals("HTTP/1.1")) {
             try {
                 connection.close();
             } catch(IOException e) {}
@@ -80,6 +80,7 @@ public class HTTPServer {
             throw new UnknownServiceException("Invalid HTTP request: " + line);
         }
         
+        System.out.println(line);
         return parts[1].substring(1);
     }
 

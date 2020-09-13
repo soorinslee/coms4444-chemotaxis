@@ -31,6 +31,7 @@ public class ControllerWrapper {
         catch(Exception e) {
             Log.writeToVerboseLogFile("Team " + this.controllerName + "'s controller has possibly timed out.");
             Log.writeToVerboseLogFile("Exception for team " + this.controllerName + "'s controller: " + e);
+            e.printStackTrace();
         }
 
         return chemicalPlacement;

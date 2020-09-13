@@ -55,7 +55,7 @@
       }
 
       #parameters {
-        width: 70%;
+        width: 55%;
         height: 100%;
         margin: 10px;
         padding-left: 5px;
@@ -94,11 +94,51 @@
       }
 
       #simulationStats {
-        width: 48%;
+        width: 40%;
         height: 100%;
         margin: 10px;
         padding-right: 5px;
-        float: right;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+      }
+
+      :root {
+        --grid-cols: 1;
+        --grid-rows: 1;
+      }
+
+      .grid-item {
+        background-color: black;
+        border: 1px solid black;
+        position: relative;
+        font-size: 25px;
+        text-align: center;
+        color: white;
+      }
+
+      table {
+        font-size: 20px;
+        border-collapse: collapse;
+        width: 100%;
+        height: 100%;
+      }
+
+      td, th {
+        text-align: center;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #222222;
+        color: YELLOW;
+        text-align: center;
+      }
+
+      tr:nth-child(odd) {
+        background-color: black;
+        color: white;
+        text-align: center
       }
 
     </style>
@@ -177,19 +217,77 @@
               return;
           }
 
+          if(map == "") {
+              alert("You must choose a map!");
+              return;
+          }
+
           console.log("Turns: " + turns);
           console.log("Budget: " + budget);
           console.log("Seed: " + seed);
           console.log("FPM: " + fpm);
           console.log("Map: " + map);
+
+          var url = `parameters.txt?turns=${turns}&budget=${budget}&seed=${seed}&fpm=${fpm}&map=${map}`;
+
+          var xhttp = new XMLHttpRequest();
+          xhttp.open("GET", url, true);
+          xhttp.send();
+
+          recurringAjax(latest_version + 1, 10, 100);
+      }
+
+      function setSimulationStats(result) {
+          var container = document.getElementById("simulationStats");
+
+          var turnsRemaining = simulationStarted ? result.turnsRemaining : 0;
+          var chemicalsRemaining = simulationStarted ? result.chemicalsRemaining : 0;
+          var budget = simulationStarted ? result.budget : 0;
+          var map = simulationStarted || result.mapName !== undefined ? result.mapName : "";
+          var seed = simulationStarted ? result.seed : 0;
+
+          container.innerHTML = `
+              <table style="font-size:15px">
+                  <tr>
+
+                      <th>Turns Remaining</th>
+                      <th style="border-right:3px solid red;">Chemicals Remaining</th>
+                      <th>Budget</th>
+                      <th>Map</th>
+                      <th>Seed</th>
+                  </tr>
+                  <tr>
+                      <td>${turnsRemaining}</td>
+                      <td style="border-right:3px solid red;">${chemicalsRemaining}</td>
+                      <td>${budget}</td>
+                      <td>${map}</td>
+                      <td>${seed}</td>
+                  </tr>
+              </table>`;
+      }
+
+      function setSimulationGrid(result) {
+          var container = document.getElementById("simulation");
+          container.innerHTML = "";
       }
 
       function process(data) {
-          var result = JSON.parse(data)
+          var result = JSON.parse(data);
+          console.log(result);
+
+          if(result.simulation)
+              simulationStarted = true;
+          else
+              simulationStarted = false;
 
           var refresh = parseFloat(result.refresh);
           var currentTurn = simulationStarted ? result.currentTurn : 0;
           var totalTurns = simulationStarted ? result.totalTurns : 0;
+
+          setSimulationStats(result);
+
+          if(simulationStarted)
+              setSimulationGrid(result);
 
           var turnElement = document.getElementById("turn");
           turnElement.innerHTML = `Turn: ${currentTurn}/${totalTurns}`;
@@ -198,9 +296,54 @@
       }
 
       var latest_version = -1;
+      var xhttp = new XMLHttpRequest();
 
-      function ajax(version, retries, timeout) {
-          var xhttp = new XMLHttpRequest();
+      function recurringAjax(version, retries, timeout) {
+          console.log("Doing a recurring ajax, version " + version);
+          xhttp = new XMLHttpRequest();
+          xhttp.onload = (function() {
+              var refresh = -1;
+              try {
+                  if(xhttp.readyState != 4)   
+                      throw "Incomplete HTTP request: " + xhttp.readyState;
+                  if(xhttp.status != 200)
+                      throw "Invalid HTTP status: " + xhttp.status;
+
+                  // if(JSON.parse(xhttp.responseText).simulation) {
+                    console.log(`LV: ${latest_version}, V: ${version}, R: ${refresh}`)
+                      refresh = process(xhttp.responseText);
+                      if(latest_version < version)
+                          latest_version = version;
+                      else
+                          refresh = -1;                    
+                  // }
+              } catch(message) {
+                  alert(message);
+              }
+
+              // if(JSON.parse(xhttp.responseText).simulation && refresh >= 0)
+              if(refresh >= 0)
+                  setTimeout(function() { recurringAjax(version + 1, retries, timeout); }, refresh);
+          });
+          xhttp.onabort = (function() {});
+          xhttp.onerror = (function() {});
+          xhttp.ontimeout = (function() {
+              if(version <= latest_version)
+                  console.log("AJAX timeout (version " + version + " <= " + latest_version + ")");
+              else if(retries == 0)
+                  location.reload(true);
+              else {
+                  console.log("AJAX timeout (version " + version + ", retries: " + retries + ")");
+                  recurringAjax(version, retries - 1, timeout * 2);
+              }
+          });
+          xhttp.open("GET", "data.txt", true);
+          xhttp.responseType = "text";
+          xhttp.send();
+      }
+
+      function guiStartAjax(version, retries, timeout) {
+          xhttp = new XMLHttpRequest();
           xhttp.onload = (function() {
               var refresh = -1;
               try {
@@ -217,9 +360,6 @@
               } catch(message) {
                   alert(message);
               }
-
-              if(refresh >= 0)
-                  setTimeout(function() { ajax(version + 1, 10, 100); }, refresh);
           });
           xhttp.onabort = (function() {});
           xhttp.onerror = (function() {});
@@ -230,16 +370,15 @@
                   location.reload(true);
               else {
                   console.log("AJAX timeout (version " + version + ", retries: " + retries + ")");
-                  ajax(version, retries - 1, timeout * 2);
+                  guiStartAjax(version, retries - 1, timeout * 2);
               }
           });
-          xhttp.open("GET", "data.txt", true);
+          xhttp.open("GET", "start.txt", true);
           xhttp.responseType = "text";
-          xhttp.timeout = timeout;
           xhttp.send();
       }
 
-      ajax(1, 10, 100);
+      guiStartAjax(1, 10, 100);
     </script>
 
     <h2 id="turn">Turn: 0/0</h2>

@@ -34,6 +34,7 @@ public class Simulator {
 	private static ControllerWrapper controllerWrapper;
 	private static Gradient[][] grid;
 	private static Random random;
+	private static HTTPServer server;
 	
 	// Simulator inputs
 	private static int seed = 10;
@@ -53,7 +54,7 @@ public class Simulator {
 	private static long timeout = 1000;
 	private static int currentTurn = 0;
 	private static String version = "1.0";
-	private static String projectPath, sourcePath, staticsPath;
+	private static String projectPath, sourcePath, staticsPath, guiPath;
     
 
 	private static void setup() {
@@ -176,6 +177,7 @@ public class Simulator {
 					int blockedX = Integer.parseInt(blockedLocationElements[0]);
 					int blockedY = Integer.parseInt(blockedLocationElements[1]);
 					blockedLocations.add(new Point(blockedX, blockedY));
+					grid[blockedX - 1][blockedY - 1] = new Gradient(false);
 				}
 			} catch(Exception e) {
 				scanner.close();
@@ -320,7 +322,7 @@ public class Simulator {
 	
 	private static void createSimulation() throws IOException, JSONException {
 		
-		HTTPServer server = null;
+		server = null;
 		
 		Log.writeToLogFile("\n");
         Log.writeToLogFile("Project: Chemotaxis");
@@ -341,13 +343,17 @@ public class Simulator {
                     Desktop.getDesktop().browse(new URI("http://localhost:" + server.port()));
                 } catch(URISyntaxException e) {}
             }
-            updateGUI(server, getGUIState(0));
+            updateGUI(server, getGUIState(0, false));
         }
 		else {
 			runSimulation();
 		}
 	}
 	
+	/**
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	private static void runSimulation() throws IOException, JSONException {
 		boolean mapIsValid = checkMap();
 		if(mapIsValid) {
@@ -358,13 +364,19 @@ public class Simulator {
 		}
 		else {
 			Log.writeToLogFile("The map is not valid!");
-			System.exit(1);
+			if(!showGUI)
+				System.exit(1);
+			updateGUI(server, getGUIState(currentTurn, false));
+			return;
 		}
 		
 		boolean agentReached = false;
 		
 		Byte previousState = 0;
 		currentTurn = 0;
+	
+		updateGUI(server, getGUIState(currentTurn, true));
+		
 		for(int i = 1; i <= turns; i++) {
 			if(agentAtTarget()) {
 				agentReached = true;
@@ -375,6 +387,14 @@ public class Simulator {
 			
 			ChemicalPlacement chemicalPlacement = controllerWrapper.applyChemicals(currentTurn, chemicalsRemaining, deepClone(agentLocation), deepClone(grid));
 			placeChemicals(chemicalPlacement);
+			
+//			System.out.println("Current turn: " + currentTurn + ", chemicals remaining: " + chemicalsRemaining + ", chemical location: " + chemicalPlacement.location + ", chemicals: " + chemicalPlacement.chemicals);
+//			for(int j = 0; j < grid.length; j++) {
+//				for(int k = 0; k < grid.length; k++) {
+//					System.out.print(grid[i][j].getConcentration(ChemicalType.BLUE) + " ");
+//				}
+//				System.out.println();
+//			}
 			
 			try {
 				// Concentrations less than 0.01 are undetected by the agent
@@ -414,6 +434,9 @@ public class Simulator {
 					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x][agentLocation.y - 1]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x][agentLocation.y]), deepClone(neighborMap));
+
+				System.out.println("Move: " + move.directionType.toString());
+				
 				moveAgent(move.directionType);
 				previousState = move.currentState;
 									
@@ -421,8 +444,12 @@ public class Simulator {
 				Log.writeToLogFile("Unable to load or run agent: " + e.getMessage());
 			}
 			
+			updateGUI(server, getGUIState(currentTurn, true));
+			
 			diffuseCells();
 		}
+
+		updateGUI(server, getGUIState(currentTurn, false));
 		
 		if(agentReached || agentAtTarget())
 			Log.writeToLogFile("The agent successfully reached the target (" + target.x + ", " + target.y + 
@@ -584,27 +611,66 @@ public class Simulator {
 	private static void updateGUI(HTTPServer server, String content) {
 		if(server == null)
 			return;
-		
-        String guiPath = null;
+				
         while(true) {
+        	boolean replied = false;
+        	
             while(true) {
                 try {
                 	guiPath = server.request();
+                	System.out.println("GUI Path: " + guiPath);
                     break;
-                } catch(IOException e) {
+                } catch(Exception e) {
                     Log.writeToVerboseLogFile("HTTP request error: " + e.getMessage());
+                }
+            }        		
+        	
+            if(guiPath.equals("start.txt")) {
+                try {
+                    server.reply(content);
+                    replied = true;
+                } catch(Exception e) {
+                    Log.writeToVerboseLogFile("HTTP dynamic reply error for starting GUI: " + e.getMessage());
+                }
+            }
+
+            if(guiPath.startsWith("parameters.txt")) {
+                try {
+                    server.reply("");
+                    replied = true;
+                    System.out.println("Hiya there!");
+                    
+                    String[] argsToParse = new String[10];
+                    String[] params = guiPath.split("\\?")[1].split("&");
+                    int index = 0;
+                    for(String param : params) {
+                    	String[] paramElements = param.split("=");
+                    	argsToParse[index++] = "--" + paramElements[0];
+                    	argsToParse[index++] = paramElements[1];
+                    	System.out.println(paramElements[0] + ": " + paramElements[1]);                    	
+                    }
+                    parseCommandLineArguments(argsToParse);
+                    readMap();
+                    runSimulation();
+                    guiPath = "";
+                    System.out.println("Returned from simulation");
+                } catch(Exception e) {
+                	e.printStackTrace();
+//                    Log.writeToVerboseLogFile("HTTP dynamic reply error for receiving simulation data: " + e.getMessage());
                 }
             }
             
             if(guiPath.equals("data.txt")) {
                 try {
                     server.reply(content);
-                } catch(IOException e) {
-                    Log.writeToVerboseLogFile("HTTP dynamic reply error: " + e.getMessage());
+                    replied = true;
+                    System.out.println("Goodbye!");
+                } catch(Exception e) {
+                    Log.writeToVerboseLogFile("HTTP dynamic reply error for running simulation: " + e.getMessage());
                 }
-                return;
+              	return;
             }
-            
+
             if(guiPath.equals(""))
             	guiPath = "webpage.html";
             else if(!Character.isLetter(guiPath.charAt(0))) {
@@ -612,32 +678,40 @@ public class Simulator {
                 break;
             }
 
-            try {
-                File file = new File(staticsPath + File.separator + guiPath);
-                server.reply(file);
-            } catch(IOException e) {
-                Log.writeToVerboseLogFile("HTTP static reply error: " + e.getMessage());
+            System.out.println("GUI path: " + guiPath + ", replied: " + replied);
+            
+            if(!replied) {
+                try {
+                    File file = new File(staticsPath + File.separator + guiPath);
+                    server.reply(file);
+                } catch(Exception e) {
+                    Log.writeToVerboseLogFile("HTTP static reply error: " + e.getMessage());
+                }
             }
-        }		
+        }
 	}
 	
-	private static String getGUIState(int turn) throws JSONException {
+	private static String getGUIState(int turn, boolean simulation) throws JSONException {
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put("refresh", 60000.0 / fpm);
 		jsonObj.put("totalTurns", turns);
 		jsonObj.put("currentTurn", turn);
 		jsonObj.put("chemicalsRemaining", chemicalsRemaining);
+		jsonObj.put("turnsRemaining", turns - turn);
 		jsonObj.put("size", mapSize);
 		jsonObj.put("seed", seed);
 		jsonObj.put("budget", budget);
 		jsonObj.put("fpm", fpm);
 		jsonObj.put("teamName", teamName);
 		jsonObj.put("mapName", mapName);
+		jsonObj.put("agentReached", target != null && agentLocation != null ? agentAtTarget() : false);
+		jsonObj.put("simulation", simulation);
 		
 		JSONArray gridArray = new JSONArray();
 		if(grid == null)
 			return jsonObj.toString();
-			
+
+		System.out.println("Number of blocked locations: " + blockedLocations.size());
 		for(int i = 0; i < grid.length; i++) {
 			JSONArray nestedGridArray = new JSONArray();
 			for(int j = 0; j < grid[0].length; j++) {
@@ -647,16 +721,18 @@ public class Simulator {
 				
 				JSONObject chemicalsObject = new JSONObject();
 				for(ChemicalType chemicalType : ChemicalType.values()) {
-					JSONObject chemicalObject = new JSONObject();
-					chemicalObject.put(chemicalType.name(), gradient.getConcentration(chemicalType));
+					chemicalsObject.put(chemicalType.name(), gradient.getConcentration(chemicalType));
 				}
 				
 				nestedGridObject.put("chemicals", chemicalsObject);
 				nestedGridObject.put("open", gradient.isOpen());
-				nestedGridObject.put("blocked", gradient.isOpen());
+				nestedGridObject.put("blocked", gradient.isBlocked());
+				
+				nestedGridArray.put(nestedGridObject);
 			}
 			gridArray.put(nestedGridArray);
 		}
+		jsonObj.put("grid", gridArray);
 		
 		JSONArray blockedLocationsArray = new JSONArray();
 		for(Point blockedLocation : blockedLocations) {
