@@ -45,13 +45,21 @@
       #setup {
         overflow: hidden;
         width: 100%;
-        height: 15%;
+        height: 20%;
       }
 
       #simulation {
         overflow: hidden;
         width: 100%;
-        height: 70%;
+        height: 75%;
+        display: grid;
+        margin: 10px;
+        padding-left: 5px;
+        padding-top: 10px;
+        float: left;
+        grid-gap: 0.1em;
+        grid-template-rows: repeat(var(--grid-rows), 1fr);
+        grid-template-columns: repeat(var(--grid-cols), 1fr);
       }
 
       #parameters {
@@ -110,9 +118,8 @@
 
       .grid-item {
         background-color: black;
-        border: 1px solid black;
+        border: 1px solid white;
         position: relative;
-        font-size: 25px;
         text-align: center;
         color: white;
       }
@@ -242,6 +249,9 @@
 
           var turnsRemaining = simulationStarted ? result.turnsRemaining : 0;
           var chemicalsRemaining = simulationStarted ? result.chemicalsRemaining : 0;
+          var redsUsed = simulationStarted ? result.chemicalsUsed["RED"] : 0;
+          var bluesUsed = simulationStarted ? result.chemicalsUsed["BLUE"] : 0;
+          var greensUsed = simulationStarted ? result.chemicalsUsed["GREEN"] : 0;
           var budget = simulationStarted ? result.budget : 0;
           var map = simulationStarted || result.mapName !== undefined ? result.mapName : "";
           var seed = simulationStarted ? result.seed : 0;
@@ -250,15 +260,21 @@
               <table style="font-size:15px">
                   <tr>
 
-                      <th>Turns Remaining</th>
-                      <th style="border-right:3px solid red;">Chemicals Remaining</th>
+                      <th>Turns Left</th>
+                      <th>Chemicals Left</th>
+                      <th>Reds Used</th>
+                      <th>Blues Used</th>
+                      <th style="border-right:3px solid red;">Greens Used</th>
                       <th>Budget</th>
                       <th>Map</th>
                       <th>Seed</th>
                   </tr>
                   <tr>
                       <td>${turnsRemaining}</td>
-                      <td style="border-right:3px solid red;">${chemicalsRemaining}</td>
+                      <td>${chemicalsRemaining}</td>
+                      <td>${redsUsed}</td>
+                      <td>${bluesUsed}</td>
+                      <td style="border-right:3px solid red;">${greensUsed}</td>
                       <td>${budget}</td>
                       <td>${map}</td>
                       <td>${seed}</td>
@@ -269,28 +285,141 @@
       function setSimulationGrid(result) {
           var container = document.getElementById("simulation");
           container.innerHTML = "";
+
+          container.style.setProperty('--grid-rows', result.size);
+          container.style.setProperty('--grid-cols', result.size);
+
+          imageWidth = "70";
+          imageHeight = "70";
+
+          var grid = result.grid;
+          var start = result.startLocation;
+          var target = result.targetLocation;
+          var agent = result.agentLocation;
+          for(var i = 0; i < result.size; i++) {
+              for(var j = 0; j < result.size; j++) {
+                  var gridElement = grid[i][j];
+
+                  var cell = document.createElement("div");
+                  cell.style.fontWeight = "bold";
+                  cell.style.width = 1;
+
+                  if(gridElement.blocked) {
+                      var img = document.createElement('img');
+                      img.src = "roadblock.png";
+                      img.style.mixBlendMode = "darken";
+                      img.width = imageWidth;
+                      img.height = imageHeight;
+                      cell.style.backgroundColor = `#ffffff`;
+                      cell.appendChild(img);
+                  }
+                  else if(agent.row == (i + 1) && agent.column == (j + 1)) {
+                      var img = document.createElement('img');
+                      img.src = "agent.png";
+                      img.width = imageWidth;
+                      img.height = imageHeight;
+                      cell.appendChild(img);
+                      updateCell(cell, gridElement);
+                  }
+                  else if(target.row == (i + 1) && target.column == (j + 1)) {
+                      var img = document.createElement('img');
+                      img.src = "finish.png";
+                      img.width = imageWidth;
+                      img.height = imageHeight;
+                      cell.appendChild(img);
+                  }
+                  else if(start.row == (i + 1) && start.column == (j + 1)) {
+                      var img = document.createElement('img');
+                      img.src = "start.png";
+                      img.width = imageWidth;
+                      img.height = imageHeight;
+                      cell.appendChild(img);
+                  }
+                  else
+                      updateCell(cell, gridElement);
+        
+                  cell.style.width = "70px";
+                  cell.style.height = "70px";
+                  container.appendChild(cell).className = "grid-item";
+              }
+          }
+      }
+
+      function updateCell(cell, gridElement) {
+          var redHex = getHexColorFromFraction(gridElement.chemicals["RED"]);
+          var greenHex = getHexColorFromFraction(gridElement.chemicals["GREEN"]);
+          var blueHex = getHexColorFromFraction(gridElement.chemicals["BLUE"]);
+          cell.style.backgroundColor = `#${redHex}${greenHex}${blueHex}`;
+      }
+
+      function getHexColorFromFraction(fraction) {
+          var decimalValue = Math.round(fraction * 255);
+          var hexTensDigit = Math.floor(decimalValue / 16);
+          switch(hexTensDigit) {
+              case 10:
+                  hexTensDigit = "A";
+                  break;
+              case 11:
+                  hexTensDigit = "B";
+                  break;
+              case 12:
+                  hexTensDigit = "C";
+                  break;
+              case 13:
+                  hexTensDigit = "D";
+                  break;
+              case 14:
+                  hexTensDigit = "E";
+                  break;
+              case 15:
+                  hexTensDigit = "F";
+                  break;
+          }
+          var hexOnesDigit = decimalValue % 16;
+          switch(hexOnesDigit) {
+              case 10:
+                  hexOnesDigit = "A";
+                  break;
+              case 11:
+                  hexOnesDigit = "B";
+                  break;
+              case 12:
+                  hexOnesDigit = "C";
+                  break;
+              case 13:
+                  hexOnesDigit = "D";
+                  break;
+              case 14:
+                  hexOnesDigit = "E";
+                  break;
+              case 15:
+                  hexOnesDigit = "F";
+                  break;
+          }
+          return `${hexTensDigit}${hexOnesDigit}`;
       }
 
       function process(data) {
           var result = JSON.parse(data);
           console.log(result);
 
+          var refresh = parseFloat(result.refresh);
+
           if(result.simulation)
               simulationStarted = true;
-          else
-              simulationStarted = false;
 
-          var refresh = parseFloat(result.refresh);
-          var currentTurn = simulationStarted ? result.currentTurn : 0;
-          var totalTurns = simulationStarted ? result.totalTurns : 0;
+          if(result.simulation && simulationStarted) {
+              var currentTurn = simulationStarted ? result.currentTurn : 0;
+              var totalTurns = simulationStarted ? result.totalTurns : 0;
 
-          setSimulationStats(result);
+              setSimulationStats(result);
 
-          if(simulationStarted)
-              setSimulationGrid(result);
+              if(simulationStarted)
+                  setSimulationGrid(result);
 
-          var turnElement = document.getElementById("turn");
-          turnElement.innerHTML = `Turn: ${currentTurn}/${totalTurns}`;
+              var turnElement = document.getElementById("turn");
+              turnElement.innerHTML = `Turn: ${currentTurn}/${totalTurns}`;
+          }
 
           return refresh;
       }
