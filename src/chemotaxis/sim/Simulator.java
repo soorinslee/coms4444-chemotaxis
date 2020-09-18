@@ -452,10 +452,9 @@ public class Simulator {
 				
 				moveAgent(move.directionType);
 				previousState = move.currentState;
-									
+			
 			} catch (Exception e) {
-				e.printStackTrace();
-//				Log.writeToLogFile("Unable to load or run agent: " + e.getMessage());
+				Log.writeToLogFile("Unable to load or run agent: " + e.getMessage());
 			}
 			
 			updateGUI(server, getGUIState(currentTurn, true));

@@ -45,17 +45,16 @@
       #setup {
         overflow: hidden;
         width: 100%;
-        height: 20%;
+/*        height: 20%;*/
       }
 
       #simulation {
         overflow: hidden;
-        width: 100%;
-        height: 75%;
         display: grid;
         margin: 10px;
         padding-left: 5px;
         padding-top: 10px;
+        text-align: center;
         float: left;
         grid-gap: 0.1em;
         grid-template-rows: repeat(var(--grid-rows), 1fr);
@@ -169,7 +168,9 @@
             <br/>
             <div style="color:limegreen;">FPM: <input type="text" id="fpm" size="10"></div>
             <br/>
-            <a onClick='sendFields()' class='simulate'>Start Simulation</a>
+            <div id="start">
+              <a onClick='sendFields()' id='start' class='simulate'>Start Simulation</a>
+            </div>
           </div>
           <div id="parametersTop3">
             <div style="color:limegreen;">Map: <input type="file" id="map"></div>
@@ -236,6 +237,9 @@
           console.log("Map: " + map);
 
           var url = `parameters.txt?turns=${turns}&budget=${budget}&seed=${seed}&fpm=${fpm}&map=${map}`;
+
+          var startContainer = document.getElementById("start");
+          startContainer.innerHTML = "";
 
           var xhttp = new XMLHttpRequest();
           xhttp.open("GET", url, true);
