@@ -22,10 +22,10 @@ public abstract class Agent {
      *
      * @param randomNum        random number available for agents
      * @param previousState    byte of previous state
-     * @param currentGradient  current cell's gradient
+     * @param currentCell  	   current cell
      * @param neighborMap      map of cell's neighbors
      * @return                 agent move
      *
      */
-    public abstract Move makeMove(Integer randomNum, Byte previousState, Gradient currentGradient, Map<DirectionType, Gradient> neighborMap);
+    public abstract Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap);
 }

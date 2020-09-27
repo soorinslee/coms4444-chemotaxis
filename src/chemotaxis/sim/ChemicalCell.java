@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Gradient implements Serializable {
+public class ChemicalCell implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	private Map<ChemicalType, Double> concentrations = new HashMap<>();
@@ -17,11 +17,11 @@ public class Gradient implements Serializable {
 		RED, GREEN, BLUE
 	}
 	
-	public Gradient() {
-		new Gradient(true);
+	public ChemicalCell() {
+		new ChemicalCell(true);
 	}
 	
-	public Gradient(boolean isOpen) {
+	public ChemicalCell(boolean isOpen) {
 		ChemicalType[] chemicalTypes = ChemicalType.values();
 		for(ChemicalType chemicalType : chemicalTypes)
 			concentrations.put(chemicalType, 0.0);

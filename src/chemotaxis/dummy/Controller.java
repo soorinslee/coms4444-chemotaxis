@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.ArrayList;
 
 import chemotaxis.sim.ChemicalPlacement;
-import chemotaxis.sim.Gradient;
-import chemotaxis.sim.Gradient.ChemicalType;
+import chemotaxis.sim.ChemicalCell;
+import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
-
+	
     /**
      * Controller constructor
      *
@@ -38,7 +38,7 @@ public class Controller extends chemotaxis.sim.Controller {
      *
      */
  	@Override
-	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid) {
+	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
  		ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
  		
  		int period = Math.max(1, this.simTime / 20);
@@ -52,23 +52,13 @@ public class Controller extends chemotaxis.sim.Controller {
  		int rightEdgeX = Math.min(size, currentX + 5);
  		int topEdgeY = Math.max(1, currentY - 5);
  		int bottomEdgeY = Math.min(size, currentY + 5);
- 		 		
+ 		
  		int randomX = this.random.nextInt(rightEdgeX - leftEdgeX + 1) + leftEdgeX;
  		int randomY = this.random.nextInt(bottomEdgeY - topEdgeY + 1) + topEdgeY ;
-
- 		System.out.println("Size: " + size);
- 		System.out.println("Current x: " + currentX);
- 		System.out.println("Current y: " + currentY);
- 		System.out.println("Left edge x: " + leftEdgeX);
- 		System.out.println("Right edge x: " + rightEdgeX);
- 		System.out.println("Top edge y: " + topEdgeY);
- 		System.out.println("Bottom edge y: " + bottomEdgeY);
- 		System.out.println("Random x: " + randomX);
- 		System.out.println("Random y: " + randomY);
  		
  		List<ChemicalType> chemicals = new ArrayList<>();
  		chemicals.add(ChemicalType.BLUE);
-
+ 		
  		chemicalPlacement.location = new Point(randomX, randomY);
  		chemicalPlacement.chemicals = chemicals;
  		

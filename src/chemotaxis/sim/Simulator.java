@@ -15,6 +15,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 import javax.tools.JavaCompiler;
@@ -25,14 +26,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import chemotaxis.sim.Gradient.ChemicalType;
+import chemotaxis.sim.ChemicalCell.ChemicalType;
 
 public class Simulator {
 	
 	// Simulator structures
 	private static String teamName, mapName;
 	private static ControllerWrapper controllerWrapper;
-	private static Gradient[][] grid;
+	private static ChemicalCell[][] grid;
 	private static Random random;
 	private static HTTPServer server;
 	
@@ -45,6 +46,7 @@ public class Simulator {
 	private static boolean verifyMap = false;
 	
 	// Defaults
+	private static boolean validMap = true;
 	private static boolean enableControllerPrints = false;
 	private static boolean enableAgentPrints = false;
 	private static int chemicalsRemaining = budget;
@@ -147,10 +149,10 @@ public class Simulator {
 
 			try {
 				mapSize = Integer.parseInt(scanner.nextLine().strip());
-				grid = new Gradient[mapSize][mapSize];
+				grid = new ChemicalCell[mapSize][mapSize];
 				for(int i = 0; i < grid.length; i++)
 					for(int j = 0; j < grid[0].length; j++)
-						grid[i][j] = new Gradient(true);
+						grid[i][j] = new ChemicalCell(true);
 			} catch(Exception e) {
 				scanner.close();
                 throw new IOException("Unable to determine map size!");
@@ -176,7 +178,7 @@ public class Simulator {
 					int blockedX = Integer.parseInt(blockedLocationElements[0]);
 					int blockedY = Integer.parseInt(blockedLocationElements[1]);
 					blockedLocations.add(new Point(blockedX, blockedY));
-					grid[blockedX - 1][blockedY - 1] = new Gradient(false);
+					grid[blockedX - 1][blockedY - 1] = new ChemicalCell(false);
 				}
 			} catch(Exception e) {
 				scanner.close();
@@ -255,16 +257,9 @@ public class Simulator {
 		}
 		
 		for(ChemicalType chemical : chemicals) {
-//			try {
-				System.out.println(location);
-				grid[location.x - 1][location.y - 1].applyConcentration(chemical);
-				chemicalsUsed.put(chemical, chemicalsUsed.get(chemical) + 1);
-				chemicalsRemaining--;
-//			} catch(Exception e) {
-//				e.printStackTrace();
-//				Log.writeToVerboseLogFile("Unable to apply chemical: " + e);
-//				continue;
-//			}
+			grid[location.x - 1][location.y - 1].applyConcentration(chemical);
+			chemicalsUsed.put(chemical, chemicalsUsed.get(chemical) + 1);
+			chemicalsRemaining--;
 		}
 	}
 
@@ -296,16 +291,16 @@ public class Simulator {
 	}
 	
 	private static void diffuseCells() {
-		Gradient[][] newGrid = deepClone(grid);
+		ChemicalCell[][] newGrid = deepClone(grid);
 		for(int i = 0; i < newGrid.length; i++) {
 			for(int j = 0; j < newGrid[0].length; j++) {
-				Gradient gradient = newGrid[i][j];
+				ChemicalCell cell = newGrid[i][j];
 
-				if(gradient.isBlocked())
+				if(cell.isBlocked())
 					continue;
 				
 				for(ChemicalType chemicalType : ChemicalType.values()) {
-					double concentrationSum = gradient.getConcentration(chemicalType);
+					double concentrationSum = cell.getConcentration(chemicalType);
 					int numUnblockedCells = 1;
 					
 					if(i > 0 && !grid[i - 1][j].isBlocked()) {
@@ -326,7 +321,7 @@ public class Simulator {
 					}
 					
 					double averageConcentration = concentrationSum / numUnblockedCells;									
-					gradient.setConcentration(chemicalType, averageConcentration);
+					cell.setConcentration(chemicalType, averageConcentration);
 				}				
 			}
 		}		
@@ -376,6 +371,7 @@ public class Simulator {
 			}
 		}
 		else {
+			validMap = false;
 			Log.writeToLogFile("The map is not valid!");
 			if(!showGUI)
 				System.exit(1);
@@ -384,6 +380,7 @@ public class Simulator {
 		}
 		
 		boolean agentReached = false;
+		boolean noChemicalsLeft = false;
 		
 		Byte previousState = 0;
 		currentTurn = 0;
@@ -393,6 +390,11 @@ public class Simulator {
 		for(int i = 1; i <= turns; i++) {
 			if(agentAtTarget()) {
 				agentReached = true;
+				break;
+			}
+			if(chemicalsRemaining == 0) {
+				noChemicalsLeft = true;
+				currentTurn = turns;
 				break;
 			}
 			
@@ -411,45 +413,43 @@ public class Simulator {
 			
 			try {
 				// Concentrations less than 0.01 are undetected by the agent
-				Gradient[][] adjustedGrid = deepClone(grid);
+				ChemicalCell[][] adjustedGrid = deepClone(grid);
 				for(int j = 0; j < adjustedGrid.length; j++) {
 					for(int k = 0; k < adjustedGrid[0].length; k++) {
-						Gradient gradient = adjustedGrid[j][k];
+						ChemicalCell cell = adjustedGrid[j][k];
 						for(ChemicalType chemicalType : ChemicalType.values()) {
-							if(gradient.getConcentration(chemicalType) < 0.01)
-								gradient.setConcentration(chemicalType, 0.0);
+							if(cell.getConcentration(chemicalType) < 0.01)
+								cell.setConcentration(chemicalType, 0.0);
 						}
 					}
 				}
 				
 				AgentWrapper agentWrapper = loadAgentWrapper();
 				
-				Map<DirectionType, Gradient> neighborMap = new HashMap<>();
+				Map<DirectionType, ChemicalCell> neighborMap = new HashMap<>();
 
 				if(agentLocation.x == 1)
-					neighborMap.put(DirectionType.NORTH, new Gradient(false));
+					neighborMap.put(DirectionType.NORTH, new ChemicalCell(false));
 				else
 					neighborMap.put(DirectionType.NORTH, adjustedGrid[agentLocation.x - 2][agentLocation.y - 1]);
 
 				if(agentLocation.x == mapSize)
-					neighborMap.put(DirectionType.SOUTH, new Gradient(false));
+					neighborMap.put(DirectionType.SOUTH, new ChemicalCell(false));
 				else
 					neighborMap.put(DirectionType.SOUTH, adjustedGrid[agentLocation.x][agentLocation.y - 1]);
 
 				if(agentLocation.y == mapSize)
-					neighborMap.put(DirectionType.EAST, new Gradient(false));
+					neighborMap.put(DirectionType.EAST, new ChemicalCell(false));
 				else
 					neighborMap.put(DirectionType.EAST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
 
 				if(agentLocation.y == 1)
-					neighborMap.put(DirectionType.WEST, new Gradient(false));
+					neighborMap.put(DirectionType.WEST, new ChemicalCell(false));
 				else
 					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x - 1][agentLocation.y - 1]), deepClone(neighborMap));
 
-				System.out.println("Move: " + move.directionType.toString());
-				
 				moveAgent(move.directionType);
 				previousState = move.currentState;
 			
@@ -467,10 +467,17 @@ public class Simulator {
 		if(agentReached || agentAtTarget())
 			Log.writeToLogFile("The agent successfully reached the target (" + target.x + ", " + target.y + 
 					") from (" + start.x + ", " + start.y + ") in " + currentTurn + " turns!");
+		else if(noChemicalsLeft)
+			Log.writeToLogFile("The controller ran out of chemicals!");
 		else
 			Log.writeToLogFile("The agent failed to reach the target (" + target.x + ", " + target.y + 
-					") from (" + start.x + ", " + start.y + ") in the allotted time.");
-		Log.writeToLogFile("Final time: " + currentTurn);
+					") from (" + start.x + ", " + start.y + ") in the allotted time.");		
+		Log.writeToLogFile("");
+		Log.writeToLogFile("Budget: " + budget);
+		Log.writeToLogFile("Seed: " + seed);
+		Log.writeToLogFile("Map: " + mapName);
+		Log.writeToLogFile("Chemicals Left: " + chemicalsRemaining);
+		Log.writeToLogFile("Final time: " + currentTurn + "/" + turns);
 		
 		if(!showGUI)
 			System.exit(1);
@@ -631,7 +638,6 @@ public class Simulator {
             while(true) {
                 try {
                 	guiPath = server.request();
-                	System.out.println("GUI Path: " + guiPath);
                     break;
                 } catch(Exception e) {
                     Log.writeToVerboseLogFile("HTTP request error: " + e.getMessage());
@@ -651,7 +657,6 @@ public class Simulator {
                 try {
                     server.reply("");
                     replied = true;
-                    System.out.println("Hiya there!");
                     
                     String[] argsToParse = new String[10];
                     String[] params = guiPath.split("\\?")[1].split("&");
@@ -660,24 +665,19 @@ public class Simulator {
                     	String[] paramElements = param.split("=");
                     	argsToParse[index++] = "--" + paramElements[0];
                     	argsToParse[index++] = paramElements[1];
-                    	System.out.println(paramElements[0] + ": " + paramElements[1]);                    	
                     }
                     parseCommandLineArguments(argsToParse);
                     readMap();
                     runSimulation();
                     guiPath = "";
-                    System.out.println("Returned from simulation");
                 } catch(Exception e) {
-                	e.printStackTrace();
-//                    Log.writeToVerboseLogFile("HTTP dynamic reply error for receiving simulation data: " + e.getMessage());
+                    Log.writeToVerboseLogFile("HTTP dynamic reply error for receiving simulation data: " + e.getMessage());
                 }
             }
             
             if(guiPath.equals("data.txt")) {
                 try {
                     server.reply(content);
-                    replied = true;
-                    System.out.println("Goodbye!");
                 } catch(Exception e) {
                     Log.writeToVerboseLogFile("HTTP dynamic reply error for running simulation: " + e.getMessage());
                 }
@@ -690,8 +690,6 @@ public class Simulator {
                 Log.writeToVerboseLogFile("Potentially malicious HTTP request: \"" + guiPath + "\"");
                 break;
             }
-
-            System.out.println("GUI path: " + guiPath + ", replied: " + replied);
             
             if(!replied) {
                 try {
@@ -719,27 +717,28 @@ public class Simulator {
 		jsonObj.put("mapName", mapName);
 		jsonObj.put("agentReached", target != null && agentLocation != null ? agentAtTarget() : false);
 		jsonObj.put("simulation", simulation);
+		jsonObj.put("validMap", validMap);
 		
 		JSONArray gridArray = new JSONArray();
 		if(grid == null)
 			return jsonObj.toString();
 
-		System.out.println("Number of blocked locations: " + blockedLocations.size());
+		DecimalFormat concentrationFormat = new DecimalFormat("###.####");
+		
 		for(int i = 0; i < grid.length; i++) {
 			JSONArray nestedGridArray = new JSONArray();
 			for(int j = 0; j < grid[0].length; j++) {
-				Gradient gradient = grid[i][j];
+				ChemicalCell cell = grid[i][j];
 				
 				JSONObject nestedGridObject = new JSONObject();
 				
 				JSONObject chemicalsObject = new JSONObject();
-				for(ChemicalType chemicalType : ChemicalType.values()) {
-					chemicalsObject.put(chemicalType.name(), gradient.getConcentration(chemicalType));
-				}
+				for(ChemicalType chemicalType : ChemicalType.values())
+					chemicalsObject.put(chemicalType.name(), concentrationFormat.format(cell.getConcentration(chemicalType)));
 				
 				nestedGridObject.put("chemicals", chemicalsObject);
-				nestedGridObject.put("open", gradient.isOpen());
-				nestedGridObject.put("blocked", gradient.isBlocked());
+				nestedGridObject.put("open", cell.isOpen());
+				nestedGridObject.put("blocked", cell.isBlocked());
 				
 				nestedGridArray.put(nestedGridObject);
 			}

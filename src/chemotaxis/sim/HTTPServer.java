@@ -80,7 +80,6 @@ public class HTTPServer {
             throw new UnknownServiceException("Invalid HTTP request: " + line);
         }
         
-        System.out.println(line);
         return parts[1].substring(1);
     }
 

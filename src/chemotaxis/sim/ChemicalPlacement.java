@@ -3,7 +3,7 @@ package chemotaxis.sim;
 import java.awt.Point;
 import java.util.List;
 
-import chemotaxis.sim.Gradient.ChemicalType;
+import chemotaxis.sim.ChemicalCell.ChemicalType;
 
 import java.util.ArrayList;
 

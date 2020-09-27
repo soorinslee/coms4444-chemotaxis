@@ -16,7 +16,7 @@ public class AgentWrapper {
         this.timer = new Timer();
     }
 
-    public Move makeMove(Integer randomNum, Byte previousState, Gradient currentGradient, Map<DirectionType, Gradient> neighborMap) {
+    public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
 
     	Log.writeToVerboseLogFile("Team " + this.agentName + "'s agent making a move...");
         
@@ -25,7 +25,7 @@ public class AgentWrapper {
         try {
             if(!timer.isAlive())
             	timer.start();
-            timer.callStart(() -> { return agent.makeMove(randomNum, previousState, currentGradient, neighborMap); });
+            timer.callStart(() -> { return agent.makeMove(randomNum, previousState, currentCell, neighborMap); });
             move = timer.callWait(timeout);
         }
         catch(Exception e) {

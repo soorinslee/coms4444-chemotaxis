@@ -16,7 +16,7 @@ public class ControllerWrapper {
         this.timer = new Timer();
     }
 
-    public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid) {
+    public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
 
     	Log.writeToVerboseLogFile("Team " + this.controllerName + "'s controller applying chemicals on turn " + currentTurn + "...");
         

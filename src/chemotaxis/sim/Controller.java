@@ -44,5 +44,5 @@ public abstract class Controller {
      * @return                    a cell location and list of chemicals to apply
      *
      */
-    public abstract ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid);
+    public abstract ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid);
 }
