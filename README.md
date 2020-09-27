@@ -126,8 +126,28 @@ In order to improve performance and readability of code during simulations, we w
     * `make gui`: run simulations from the GUI with live modifications to simulation arguments
 
 #### Simulator arguments:
+> **[-r | --turns]**: total number of turns (default = 100)
 
-## GUI Features
+> **[-t | --team]**: team/player
+
+> **[-b | --budget]**: chemical budget
+
+> **[-c | --check]**: verify map validity when a map is specified
+
+> **[-m PATH | --map PATH]**: path to the simulation map, specifying the map size and locations of blocked cells
+
+> **[-s | --seed]**: seed value for random player (default = 10)
+
+> **[-l PATH | --log PATH]**: enable logging and output log to both console and log file
+
+> **[-v | --verbose]**: record verbose log when logging is enabled (default = false)
+
+> **[-g | --gui]**: enable GUI (default = false)
+
+> **[-f | --fpm]**: speed (frames per minute) of GUI when continuous GUI is enabled (default = 15)
+
+
+## Map Configuration
 
 
 ## API Description
