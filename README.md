@@ -157,11 +157,11 @@ In order to improve performance and readability of code during simulations, we w
 A map file (*.map* extension) contains a grid configuration of the simulation. Each map configuration specifies the size of the map on the first line, followed by the coordinates of the start and target locations on the second line, and the coordinates of any blocked locations on successive lines. An example of a map configuration is as follows:
 
 ```
-100					# Size of grid
-20 30 80 90			# (x, y) of start cell followed by (x, y) of target cell
-15 23					# Blocked cell 1
-29 84					# Blocked cell 2
-47 36					# Blocked cell 3
+100	      # Size of grid
+20 30 80 90   # (x, y) of start cell followed by (x, y) of target cell
+15 23	      # Blocked cell 1
+29 84	      # Blocked cell 2
+47 36	      # Blocked cell 3
 ...
 ```
 
