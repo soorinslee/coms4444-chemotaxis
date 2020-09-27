@@ -12,34 +12,6 @@ TA: Aditya Sridhar
 ## Project Description
 
 
-## Required Installations
-Before you can start working with the simulator and implementing your code, you will first need to set up your environment. This requires both Java and Git.
-
-### Java
-The simulator is implemented in Java, and you will be required to submit Java code for your project. To check if you have Java already installed, run `javac -version` and `java -version` for the versions of the Java Development Kit (JDK) and Java Runtime Environment (JRE), respectively.
-
-If you do not have Java set up, you will first need to install a JDK, which provides everything that allows you to write and execute Java code inside of a runtime environment. Please download the latest release of Java JDK for your OS [here](https://www.oracle.com/java/technologies/javase-downloads.html) (currently 14.0.2).
-* Under Oracle Java SE 14 > Oracle JDK, click on *JDK Download*.
-* Click on the installer link corresponding to your OS.
-* Check the box to accept the license agreement, and click the download button.
-* Once the installer has been downloaded, start the installer and complete the steps.
-* Depending on your OS, you might need to set up some environment variables to run Java. This is especially true for Windows and Linux. As a recommendation, follow the instructions [here](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html) to finish the Java environment setup for your OS (note that the website also has full step-by-step instructions that you can follow to install the JDK for your OS).
-* Verify now that you have your JDK and JRE set up by rerunning `javac -version` and `java -version`.
-
-You are now ready to start writing Java code!
-
-It is also preferable to develop your Java code in an integrated development environment (IDE) such as [Eclipse](https://www.eclipse.org/downloads/) or [IntelliJ IDEA](https://www.jetbrains.com/idea/download/).
-
-### Git
-Version control with Git will be a large aspect of team-oriented development in this course. You will be managing and submitting your projects using Git. Mac and Linux users can access Git from their terminal. For Windows users, it is preferable to use a common emulator like "Git Bash" to access Git.
-
-Please follow these instructions for installing Git and forking repositories:
-
-1.  Make sure you have Git installed. Instructions on installing Git for your OS can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-2.  You will need to set up SSH keys for each machine using Git, if you haven't done so. To set up SSH keys, please refer to this [page](https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent). Note that you only need to complete the subsection titled _Generating a new SSH key_ for your OS.
-3.  Add your newly-generated SSH keys to the GitHub account, as done [here](https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account).
-4.  Fork any repository (to fork, click on "Fork" in the top-right of the page), and clone the forked repository in your local machine inside the parent directory that will house the repository (to copy the remote URL for cloning, click on the "Clone" button, make sure that "Clone with SSH" is visible - the remote URL should start with `git@github.com` - and copy the URL to the clipboard). You should now be able to stage, commit, push, and pull changes using Git.
-
 ## Implementation
 
 You will be creating your own controller and agent that extend the simulator's abstract controller and agent, respectively. Please follow these steps to begin your implementation:
@@ -52,7 +24,7 @@ package chemotaxis.gx; // TODO modify the package name to reflect your team
 import java.awt.Point;
 
 import chemotaxis.sim.ChemicalPlacement;
-import chemotaxis.sim.Gradient;
+import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
@@ -62,15 +34,16 @@ public class Controller extends chemotaxis.sim.Controller {
     *
     * @param start       start cell coordinates
     * @param target      target cell coordinates
+    * @param size     	 grid/map size
     * @param simTime     simulation time
     * @param budget      chemical budget
     * @param seed        random seed
     * @param simPrinter  simulation printer
     *
     */
-   public Controller(Point start, Point target, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
-      super(start, target, simTime, budget, seed, simPrinter);
-   }
+	public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
+	   super(start, target, size, simTime, budget, seed, simPrinter);
+	}
 
    /**
     * Apply chemicals to the map
@@ -82,8 +55,8 @@ public class Controller extends chemotaxis.sim.Controller {
     * @return                    a cell location and list of chemicals to apply
     *
     */
-   @Override
-   public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, Gradient[][] grid) {
+ 	@Override
+	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
       // TODO add your code here to apply chemicals
 
       return null; // TODO modify the return statement to return your chemical placement
@@ -97,7 +70,7 @@ package chemotaxis.gx; // TODO modify the package name to reflect your team
 import java.util.Map;
 
 import chemotaxis.sim.DirectionType;
-import chemotaxis.sim.Gradient;
+import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.Move;
 import chemotaxis.sim.SimPrinter;
 
@@ -118,13 +91,13 @@ public class Agent extends chemotaxis.sim.Agent {
     *
     * @param randomNum        random number available for agents
     * @param previousState    byte of previous state
-    * @param currentGradient  current cell's gradient
+    * @param currentCell      current cell
     * @param neighborMap      map of cell's neighbors
     * @return                 agent move
     *
     */
-   @Override
-   public Move makeMove(Integer randomNum, Byte previousState, Gradient currentGradient, Map<DirectionType, Gradient> neighborMap) {
+	@Override
+	public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
       // TODO add your code here to move the agent
 
       return null; // TODO modify the return statement to return your agent move
