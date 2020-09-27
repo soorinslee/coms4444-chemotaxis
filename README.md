@@ -41,9 +41,9 @@ public class Controller extends chemotaxis.sim.Controller {
     * @param simPrinter  simulation printer
     *
     */
-	public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
-	   super(start, target, size, simTime, budget, seed, simPrinter);
-	}
+   public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
+   	super(start, target, size, simTime, budget, seed, simPrinter);
+   }
 
    /**
     * Apply chemicals to the map
@@ -55,8 +55,8 @@ public class Controller extends chemotaxis.sim.Controller {
     * @return                    a cell location and list of chemicals to apply
     *
     */
- 	@Override
-	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
+   @Override
+   public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
       // TODO add your code here to apply chemicals
 
       return null; // TODO modify the return statement to return your chemical placement
@@ -96,8 +96,8 @@ public class Agent extends chemotaxis.sim.Agent {
     * @return                 agent move
     *
     */
-	@Override
-	public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
+   @Override
+   public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
       // TODO add your code here to move the agent
 
       return null; // TODO modify the return statement to return your agent move
