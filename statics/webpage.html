@@ -64,11 +64,10 @@
       }
 
       #parameters {
-        width: 55%;
+        width: 100%;
         height: 100%;
         margin: 10px;
         padding-left: 5px;
-        float: left;
       }
 
       #parametersTop {
@@ -80,17 +79,17 @@
       }
 
       #parametersTop1 {
-        width: 24%;
+        width: 30%;
         float: left;
       }
 
       #parametersTop2 {
-        width: 24%;
+        width: 30%;
         float: left;
       }
 
       #parametersTop3 {
-        width: 42%;
+        width: 40%;
         float: left;
       }
 
@@ -103,10 +102,9 @@
       }
 
       #simulationStats {
-        width: 40%;
-        height: 100%;
+        width: 50%;
         margin: 10px;
-        padding-right: 5px;
+        padding-left: 5px;
         align-items: center;
         justify-content: center;
         display: flex;
@@ -247,11 +245,10 @@
         </div>
         <div id="parametersBottom"></div>
       </div>
-      <div id="simulationStats"></div>
     </div>
     <div id="simulation"></div>
+    <div id="simulationStats"></div>
     <h2 id="turn">Turn: 0/0</h2>
-
 
     <script>
       var regexAlpha = /[^a-zA-Z]/g;
@@ -310,8 +307,8 @@
 
           var url = `parameters.txt?turns=${turns}&budget=${budget}&seed=${seed}&fpm=${fpm}&map=${map}`;
 
-          var startContainer = document.getElementById("start");
-          startContainer.innerHTML = "";
+          var parametersContainer = document.getElementById("parameters");
+          parametersContainer.innerHTML = "";
 
           var xhttp = new XMLHttpRequest();
           xhttp.open("GET", url, true);
