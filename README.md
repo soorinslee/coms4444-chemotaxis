@@ -135,7 +135,7 @@ In order to improve performance and readability of code during simulations, we w
 
 > **[-t | --team]**: team/player
 
-> **[-b | --budget]**: chemical budget
+> **[-b | --budget]**: chemical budget (default = 50)
 
 > **[-c | --check]**: verify map validity when a map is specified
 
