@@ -403,14 +403,6 @@ public class Simulator {
 			ChemicalPlacement chemicalPlacement = controllerWrapper.applyChemicals(currentTurn, chemicalsRemaining, deepClone(agentLocation), deepClone(grid));
 			placeChemicals(chemicalPlacement);
 			
-//			System.out.println("Current turn: " + currentTurn + ", chemicals remaining: " + chemicalsRemaining + ", chemical location: " + chemicalPlacement.location + ", chemicals: " + chemicalPlacement.chemicals);
-//			for(int j = 0; j < grid.length; j++) {
-//				for(int k = 0; k < grid.length; k++) {
-//					System.out.print(grid[i][j].getConcentration(ChemicalType.BLUE) + " ");
-//				}
-//				System.out.println();
-//			}
-			
 			try {
 				// Concentrations less than 0.01 are undetected by the agent
 				ChemicalCell[][] adjustedGrid = deepClone(grid);
