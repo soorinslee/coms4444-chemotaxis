@@ -219,13 +219,21 @@ public class Simulator {
 				}
 			}
 		}
-		visitLocations(unvisitedLocations, new ArrayList<>(), 1, 1);
-
+		if(unvisitedLocations.isEmpty())
+			return true;
+		
+		if(mapSize <= 50) {
+			Point firstUnvisitedLocation = unvisitedLocations.get(0);
+			visitLocations(unvisitedLocations, new ArrayList<>(), 
+					1, mapSize, 1, mapSize, firstUnvisitedLocation.x, firstUnvisitedLocation.y, 0, 0);
+		}
+		
 		return unvisitedLocations.isEmpty();
 	}
 	
-	private static void visitLocations(List<Point> unvisitedLocations, List<Point> visitedLocations, int row, int column) {
-		if(row < 1 || row > mapSize || column < 1 || column > mapSize)
+	private static void visitLocations(List<Point> unvisitedLocations, List<Point> visitedLocations, 
+			int rowLowerBound, int rowUpperBound, int columnLowerBound, int columnUpperBound, int row, int column, int prevRow, int prevColumn) {
+		if(row < rowLowerBound || row > rowUpperBound || column < columnLowerBound || column > columnUpperBound)
 			return;
 		
 		Point location = new Point(row, column);
@@ -236,8 +244,14 @@ public class Simulator {
 			unvisitedLocations.remove(location);
 		}
 		
-		visitLocations(unvisitedLocations, visitedLocations, row + 1, column);
-		visitLocations(unvisitedLocations, visitedLocations, row, column + 1);
+		if(unvisitedLocations.contains(new Point(row + 1, column)) && (prevRow != row || prevColumn != column))
+			visitLocations(unvisitedLocations, visitedLocations, rowLowerBound, rowUpperBound, columnLowerBound, columnUpperBound, row + 1, column, row, column);
+		if(unvisitedLocations.contains(new Point(row, column + 1)) && (prevRow != row || prevColumn != column))
+			visitLocations(unvisitedLocations, visitedLocations, rowLowerBound, rowUpperBound, columnLowerBound, columnUpperBound, row, column + 1, row, column);
+		if(unvisitedLocations.contains(new Point(row - 1, column)) && (prevRow != row || prevColumn != column))
+			visitLocations(unvisitedLocations, visitedLocations, rowLowerBound, rowUpperBound, columnLowerBound, columnUpperBound, row - 1, column, row, column);
+		if(unvisitedLocations.contains(new Point(row, column - 1)) && (prevRow != row || prevColumn != column))
+			visitLocations(unvisitedLocations, visitedLocations, rowLowerBound, rowUpperBound, columnLowerBound, columnUpperBound, row, column - 1, row, column);
 	}
 		
 	private static void placeChemicals(ChemicalPlacement chemicalPlacement) {
