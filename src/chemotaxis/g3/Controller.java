@@ -42,8 +42,6 @@ public class Controller extends chemotaxis.sim.Controller {
  		ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
  		
  		int period = Math.max(1, this.simTime / 20);
- 		if(currentTurn % period != 0)
- 			return chemicalPlacement;
 
  		int currentX = currentLocation.x;
  		int currentY = currentLocation.y;
