@@ -1,13 +1,17 @@
 package chemotaxis.g2;
 
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Map;
 
 import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
+import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
-
+    private ArrayList<Point> shortestPath;
+    private ArrayList<Map.Entry<Point, DirectionType>> turns;
     /**
      * Controller constructor
      *
@@ -22,6 +26,7 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
+
     }
 
     /**
@@ -36,8 +41,40 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     @Override
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
-        // TODO add your code here to apply chemicals
+        if (currentTurn == 1) {
+            shortestPath = getShortestPath(grid);
+            turns = getTurnsList();
+        }
+        /*
+        * TODO:
+        *  check for indepent agent moves => if yes do that
+        *  check for turn
+        *  set last move bits
+        * */
 
-        return null; // TODO modify the return statement to return your chemical placement
+        return null;
     }
+
+    // TODO: for deliverable
+    private ArrayList<Point> getShortestPath(ChemicalCell[][] grid) {
+        // after finding shortest path:
+        // if (pathCost > budget) => continue to next shortest path
+        return null;
+    }
+
+    // TODO: for deliverable
+    private ArrayList<Map.Entry<Point, DirectionType>> getTurnsList() {
+        // goes through shortest path to gets turns
+        return null;
+    }
+
+    // TODO: for deliverable
+    private int getPathCost() {
+        return 0;
+    }
+
+    /*
+    * TODOS:
+    *  Longterm diagnol
+    * */
 }
