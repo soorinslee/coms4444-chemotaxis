@@ -60,9 +60,8 @@ public class Controller extends chemotaxis.sim.Controller {
 
         if ((this.currApplication) < this.path.size()) {        // If not done dropping chemicals along whole path
             chemicalPlacement.chemicals = chemicals;
-            if (chemicalsRemaining >= this.totalChemicals/2) {  // If over half of chemicals left, use more liberally
+            if (chemicalsRemaining >= this.totalChemicals/2)    // If over half of chemicals left, use more liberally
                 chemicalPlacement.location = path.get(this.currApplication++);
-            }
             else if (chemicalsRemaining < this.totalChemicals/2 && currentTurn % 2 == 1) {
                 chemicalPlacement.location = path.get(this.currApplication);
                 this.currApplication += 2;
