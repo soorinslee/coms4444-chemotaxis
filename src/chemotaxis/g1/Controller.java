@@ -46,21 +46,21 @@ public class Controller extends chemotaxis.sim.Controller {
     @Override
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
         if (this.path.size() == 0) {
-            this.path = getShortestPath(this.start, grid);
+            this.path = getShortestPath(this.start, grid);      // Get shortest path
         }
         // System.out.println(this.path);
 
         if (currentTurn == 1)
-            this.totalChemicals = chemicalsRemaining;
+            this.totalChemicals = chemicalsRemaining;           // Get total chemicals
 
         ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
 
         List<ChemicalType> chemicals = new ArrayList<>();
- 		chemicals.add(ChemicalType.BLUE);
+ 		chemicals.add(ChemicalType.BLUE);                       // Using blue chemical
 
-        if ((this.currApplication) < this.path.size()) {
+        if ((this.currApplication) < this.path.size()) {        // If not done dropping chemicals along whole path
             chemicalPlacement.chemicals = chemicals;
-            if (chemicalsRemaining >= this.totalChemicals/2) {
+            if (chemicalsRemaining >= this.totalChemicals/2) {  // If over half of chemicals left, use more liberally
                 chemicalPlacement.location = path.get(this.currApplication++);
             }
             else if (chemicalsRemaining < this.totalChemicals/2 && currentTurn % 2 == 1) {
@@ -68,7 +68,7 @@ public class Controller extends chemotaxis.sim.Controller {
                 this.currApplication += 2;
             }
         }
-        else
+        else                                                    // If done dropping along whole path, drop at target
             chemicalPlacement.location = this.target;
 
         return chemicalPlacement;
