@@ -5,11 +5,14 @@ import java.util.*;
 
 import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
+import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
 
     private List<Point> path;
+    private Integer currApplication;
+    private Integer totalChemicals;
 
     /**
      * Controller constructor
@@ -26,6 +29,8 @@ public class Controller extends chemotaxis.sim.Controller {
     public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
         this.path = new ArrayList<Point>();
+        this.currApplication = 0;
+        this.totalChemicals = 0;
     }
 
     /**
@@ -43,11 +48,30 @@ public class Controller extends chemotaxis.sim.Controller {
         if (this.path.size() == 0) {
             this.path = getShortestPath(this.start, grid);
         }
-        System.out.println(this.path);
-        // TODO add your code here to apply chemicals
+        // System.out.println(this.path);
 
+        if (currentTurn == 1)
+            this.totalChemicals = chemicalsRemaining;
 
-        return null; // TODO modify the return statement to return your chemical placement
+        ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+
+        List<ChemicalType> chemicals = new ArrayList<>();
+ 		chemicals.add(ChemicalType.BLUE);
+
+        if ((this.currApplication) < this.path.size()) {
+            chemicalPlacement.chemicals = chemicals;
+            if (chemicalsRemaining >= this.totalChemicals/2) {
+                chemicalPlacement.location = path.get(this.currApplication++);
+            }
+            else if (chemicalsRemaining < this.totalChemicals/2 && currentTurn % 2 == 1) {
+                chemicalPlacement.location = path.get(this.currApplication);
+                this.currApplication += 2;
+            }
+        }
+        else
+            chemicalPlacement.location = this.target;
+
+        return chemicalPlacement;
     }
 
     // BFS implementation
@@ -80,7 +104,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
     // Get available neighbors of a cell
     public List<Point> getNeighbors(Point node, ChemicalCell[][] grid) {
-        List<Point> neighbors = new ArrayList<Point>();
+        List<Point> neighbors = new ArrayList<>();
         int x = (int)node.getX()-1;
         int y = (int)node.getY()-1;
         if (x > 0 && grid[x-1][y].isOpen())
