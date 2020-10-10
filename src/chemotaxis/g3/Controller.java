@@ -3,14 +3,20 @@ package chemotaxis.g3;
 import java.awt.Point;
 import java.util.List;
 import java.util.ArrayList;
+import java.lang.Math;
 
 import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
+import chemotaxis.g3.Language;
+
 public class Controller extends chemotaxis.sim.Controller {
-	
+    
+    Language lang = new Language();
+    Point lastPoint = new Point();
+
     /**
      * Controller constructor
      *
@@ -39,25 +45,50 @@ public class Controller extends chemotaxis.sim.Controller {
      */
  	@Override
 	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
- 		ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
- 		
- 		int period = Math.max(1, this.simTime / 20);
+        
+        if (lastPoint.equals(currentLocation)) {
+            simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
+            return new ChemicalPlacement();
+        }
 
- 		int currentX = currentLocation.x;
- 		int currentY = currentLocation.y;
- 		
- 		int leftEdgeX = Math.max(1, currentX - 5);
- 		int rightEdgeX = Math.min(size, currentX + 5);
- 		int topEdgeY = Math.max(1, currentY - 5);
- 		int bottomEdgeY = Math.min(size, currentY + 5);
- 		
- 		int randomX = this.random.nextInt(rightEdgeX - leftEdgeX + 1) + leftEdgeX;
- 		int randomY = this.random.nextInt(bottomEdgeY - topEdgeY + 1) + topEdgeY ;
- 		
- 		List<ChemicalType> chemicals = new ArrayList<>();
- 		chemicals.add(ChemicalType.BLUE);
- 		
- 		chemicalPlacement.location = new Point(randomX, randomY);
+        int currentX = currentLocation.x;
+        int currentY = currentLocation.y;
+        lastPoint.setLocation(currentX, currentY);
+        
+        ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+        List<ChemicalType> chemicals = new ArrayList<>();
+
+        // calculate angle between agent and target 
+        double angle = Math.toDegrees(Math.atan2(this.target.y - currentY, this.target.x - currentX));
+
+        if (angle < 0){
+            angle += 360;
+        }
+                 
+        // Pass angle into language --> returns with where to place colors
+        String placements = lang.getColor(angle);
+        simPrinter.println("Calculated angle is: " + angle + " degrees.");
+        simPrinter.println("Placement/RGB is: " + placements);
+
+        // Break apart colors to see where to place, ex => "d_GB"
+        if (placements.charAt(0) == 'u') 
+            chemicalPlacement.location = new Point(currentX, currentY+1);
+        else if (placements.charAt(0) == 'd') 
+            chemicalPlacement.location = new Point(currentX, currentY-1);
+        else if (placements.charAt(0) == 'l') 
+            chemicalPlacement.location = new Point(currentX-1, currentY);
+        else if (placements.charAt(0) == 'r') 
+            chemicalPlacement.location = new Point(currentX+1, currentY);
+        else 
+            chemicalPlacement.location = new Point(currentX, currentY);
+
+        if (placements.charAt(1) == 'R') 
+            chemicals.add(ChemicalType.RED);
+        if (placements.charAt(2) == 'G') 
+            chemicals.add(ChemicalType.GREEN);
+        if (placements.charAt(3) == 'B') 
+            chemicals.add(ChemicalType.BLUE);
+ 	
  		chemicalPlacement.chemicals = chemicals;
  		
  		return chemicalPlacement;
