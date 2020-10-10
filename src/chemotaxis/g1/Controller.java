@@ -45,13 +45,11 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     @Override
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
-        if (this.path.size() == 0) {
+        if (currentTurn == 1) {
             this.path = getShortestPath(this.start, grid);      // Get shortest path
+            this.totalChemicals = chemicalsRemaining;           // Get total chemicals
         }
         // System.out.println(this.path);
-
-        if (currentTurn == 1)
-            this.totalChemicals = chemicalsRemaining;           // Get total chemicals
 
         ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
 
