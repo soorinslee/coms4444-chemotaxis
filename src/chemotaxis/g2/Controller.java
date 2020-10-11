@@ -46,6 +46,10 @@ public class Controller extends chemotaxis.sim.Controller {
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
         if (currentTurn == 1) {
             shortestPath = getShortestPath(grid);
+            System.out.println(shortestPath.size());
+            for (Point p: shortestPath){
+                System.out.println(p);
+            }
             turns = getTurnsList();
         }
         /*
@@ -66,6 +70,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
         int[] rowPosMovs = { -1, 0, 0, 1 };
         int[] colPosMovs = { 0, -1, 1, 0 };
+        // up, left, right, down
 
         // construct a matrix to keep track of visited cells
         boolean[][] visited = new boolean[size][size];
@@ -105,6 +110,63 @@ public class Controller extends chemotaxis.sim.Controller {
                 break;
             }
 
+            
+            // get previous move. (i's parent). move in same direction first.
+            if (!(i == (int) start.getX()-1 && j==(int) start.getY()-1)){ 
+                Point grandparent = prevCell[i][j];
+                int directionR = i - (int) (grandparent.getX() - 1.0);
+                int directionC = j - (int) (grandparent.getY() - 1.0);
+
+                System.out.println("thiscell= " + (i+1) + " " + (j+1));
+                System.out.println("prevcell= " + grandparent);
+                System.out.println(directionR + " " + directionC);
+
+                if (directionR == 0) {
+                    if (directionC == 1){
+                        rowPosMovs[0] = 0;
+                        colPosMovs[0] = 1;
+                        rowPosMovs[1] = -1;
+                        colPosMovs[1] = 0;
+                        rowPosMovs[2] = 0;
+                        colPosMovs[2] = -1;
+                        rowPosMovs[3] = 1;
+                        colPosMovs[3] = 0;
+                    }
+                    else if (directionC == -1){
+                        rowPosMovs[0] = 0;
+                        colPosMovs[0] = -1;
+                        rowPosMovs[1] = -1;
+                        colPosMovs[1] = 0;
+                        rowPosMovs[2] = 0;
+                        colPosMovs[2] = 1;
+                        rowPosMovs[3] = 1;
+                        colPosMovs[3] = 0;
+                    }
+                } 
+                else if (directionC == 0) {
+                    if (directionR == 1){
+                        rowPosMovs[0] = 1;
+                        colPosMovs[0] = 0;
+                        rowPosMovs[1] = -1;
+                        colPosMovs[1] = 0;
+                        rowPosMovs[2] = 0;
+                        colPosMovs[2] = -1;
+                        rowPosMovs[3] = 0;
+                        colPosMovs[3] = 1;
+                    }
+                    else if (directionR == -1){
+                        rowPosMovs[0] = -1;
+                        colPosMovs[0] = 0;
+                        rowPosMovs[1] = 1;
+                        colPosMovs[1] = 0;
+                        rowPosMovs[2] = 0;
+                        colPosMovs[2] = -1;
+                        rowPosMovs[3] = 0;
+                        colPosMovs[3] = 1;
+                    }
+                }
+            }
+
             // check for all 4 possible movements from current cell
             // and enqueue each valid movement
             for (int k = 0; k < 4; k++)
@@ -114,6 +176,7 @@ public class Controller extends chemotaxis.sim.Controller {
                 if (isValid(grid, visited, i + rowPosMovs[k], j + colPosMovs[k]))
                 {
                     // mark next cell as visited and enqueue it
+
                     visited[i + rowPosMovs[k]][j + colPosMovs[k]] = true;
                     prevCell[i + rowPosMovs[k]][j + colPosMovs[k]] = new Point(i + 1, j + 1);
                     q.add(new Node(i + rowPosMovs[k], j + colPosMovs[k], dist + 1));
@@ -122,9 +185,6 @@ public class Controller extends chemotaxis.sim.Controller {
         }
 
         if (min_dist != Integer.MAX_VALUE) {
-            System.out.println("The shortest path from source to destination " +
-                                     "has length " + min_dist);
-
             ArrayList<Point> sp = new ArrayList<Point>();
             sp.add(target);
             Point cur = prevCell[(int) target.getX()-1][(int) target.getY()-1];    
@@ -136,6 +196,7 @@ public class Controller extends chemotaxis.sim.Controller {
         }
         else {
             System.out.println("Destination can't be reached from given source");
+            // what to do in else???
         }
 
         return null;
@@ -148,6 +209,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
     // TODO: for deliverable
     private ArrayList<Map.Entry<Point, DirectionType>> getTurnsList() {
+        // look for long diagonals
         // goes through shortest path to gets turns
        
        //to print shortest path
@@ -234,6 +296,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
     /*
     * TODOS:
-    *  Longterm diagnol
+    * Longterm diagnol
+    * what if get shortest path fails
     * */
 }
