@@ -10,9 +10,9 @@ import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
 
-    private List<Point> path;
-    private Integer currApplication;
-    private Integer totalChemicals;
+    private List<Point> path;           // path of shortest distance to target
+    private Integer currApplication;    // keep track of where chemicals have been applied on path
+    private Integer totalChemicals;     // total number of chemicals
 
     /**
      * Controller constructor
@@ -29,7 +29,7 @@ public class Controller extends chemotaxis.sim.Controller {
     public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
         this.path = new ArrayList<Point>();
-        this.currApplication = 0;
+        this.currApplication = 1;
         this.totalChemicals = 0;
     }
 
