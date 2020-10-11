@@ -46,10 +46,6 @@ public class Controller extends chemotaxis.sim.Controller {
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
         if (currentTurn == 1) {
             shortestPath = getShortestPath(grid);
-            System.out.println(shortestPath.size());
-            for (Point p: shortestPath){
-                System.out.println(p);
-            }
             turns = getTurnsList();
         }
         /*
@@ -116,10 +112,6 @@ public class Controller extends chemotaxis.sim.Controller {
                 Point grandparent = prevCell[i][j];
                 int directionR = i - (int) (grandparent.getX() - 1.0);
                 int directionC = j - (int) (grandparent.getY() - 1.0);
-
-                System.out.println("thiscell= " + (i+1) + " " + (j+1));
-                System.out.println("prevcell= " + grandparent);
-                System.out.println(directionR + " " + directionC);
 
                 if (directionR == 0) {
                     if (directionC == 1){
