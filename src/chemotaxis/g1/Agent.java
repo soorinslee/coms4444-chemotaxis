@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.ChemicalCell;
+import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.Move;
 import chemotaxis.sim.SimPrinter;
 import chemotaxis.sim.ChemicalCell.ChemicalType;
@@ -36,7 +37,7 @@ public class Agent extends chemotaxis.sim.Agent {
      */
     @Override
     public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell,
-            Map<DirectionType, ChemicalCell> neighborMap) {
+                         Map<DirectionType, ChemicalCell> neighborMap) {
         Move agentMove = new Move();
         Map<DirectionType, ChemicalType> move = getMostConcentratedChemical(neighborMap);
         for(DirectionType key: move.keySet()){
@@ -46,7 +47,7 @@ public class Agent extends chemotaxis.sim.Agent {
                 agentMove.directionType = getOppositeDirection(key);
             }
         }
-        return agentMove; 
+        return agentMove;
     }
 
     private Map<DirectionType, ChemicalType> getMostConcentratedChemical(Map<DirectionType, ChemicalCell> neighborCellMap) {
