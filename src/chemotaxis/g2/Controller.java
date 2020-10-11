@@ -10,6 +10,7 @@ import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.SimPrinter;
+import java.util.AbstractMap;
 
 public class Controller extends chemotaxis.sim.Controller {
     private ArrayList<Point> shortestPath;
@@ -148,7 +149,67 @@ public class Controller extends chemotaxis.sim.Controller {
     // TODO: for deliverable
     private ArrayList<Map.Entry<Point, DirectionType>> getTurnsList() {
         // goes through shortest path to gets turns
-        return null;
+       
+       //to print shortest path
+        /* System.out.println("shortest path is ");
+        for(Point pt : shortestPath) {
+            System.out.println(pt);
+        }*/
+
+        ArrayList<Map.Entry<Point, DirectionType>> turns = new ArrayList<>();
+
+        //edge case
+        if(shortestPath.size() < 2) {
+            return turns;
+        }
+
+        //first direction
+        DirectionType lastDir = findDirection(shortestPath.get(0), shortestPath.get(1));
+        turns.add(new AbstractMap.SimpleEntry(shortestPath.get(0), lastDir));
+
+        //for each point, determine direction to next point
+        for(int i = 1; i < shortestPath.size()-1; i++) {
+            DirectionType curDir = findDirection(shortestPath.get(i), shortestPath.get(i+1));
+
+            //if the direction changed, record the point and the new direction
+            if(lastDir != curDir) {
+                turns.add(new AbstractMap.SimpleEntry(shortestPath.get(i), curDir));
+                lastDir = curDir;
+            }
+        }
+
+        //to print the turns list
+        /*System.out.println("turns list is ");
+        for(Map.Entry<Point, DirectionType> turn: turns) {
+            System.out.println(turn.getKey() + ":  " + turn.getValue());
+        }*/
+
+        return turns;
+    }
+
+    //from start and end points, determine direction
+    private DirectionType findDirection(Point start, Point end) {
+        //up
+        if(start.getX() < end.getX()) {
+            return DirectionType.NORTH;
+        }
+
+        //down
+        if(start.getX() > end.getX()) {
+            return DirectionType.SOUTH;
+        }
+
+        //right
+        if(start.getY() < end.getY()) {
+            return DirectionType.EAST;
+        }
+
+        //left
+        if(start.getY() > end.getY()) {
+            return DirectionType.WEST;
+        }
+
+        return DirectionType.CURRENT;
     }
 
     // TODO: for deliverable
