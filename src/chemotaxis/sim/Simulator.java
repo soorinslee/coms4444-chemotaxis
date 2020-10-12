@@ -457,7 +457,7 @@ public class Simulator {
 				if(agentLocation.y == 1)
 					neighborMap.put(DirectionType.WEST, new ChemicalCell(false));
 				else
-					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
+					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y - 2]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x - 1][agentLocation.y - 1]), deepClone(neighborMap));
 
