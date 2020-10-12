@@ -10,12 +10,12 @@ import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
-import chemotaxis.g3.Language;
+import chemotaxis.g3.Language.Translator;
 
 public class Controller extends chemotaxis.sim.Controller {
     
-    Language lang;
     Point lastPoint = new Point(-1,-1);
+    private Translator trans = null;
 
     /**
      * Controller constructor
@@ -31,7 +31,7 @@ public class Controller extends chemotaxis.sim.Controller {
      */
 	public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
-        this.lang = new Language(simPrinter);
+        this.trans = Translator.getInstance();
 	}
 
     /**
@@ -51,9 +51,9 @@ public class Controller extends chemotaxis.sim.Controller {
         // TODO: find obstacles in path
 
         simPrinter.println("\ncurrent turn: " + currentTurn);
-        // if (lastPoint.equals(currentLocation) || lastPoint.equals(new Point(-1,-1))) {
-        if (currentTurn == 1) {
-            simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
+        if (lastPoint.equals(currentLocation) || lastPoint.equals(new Point(-1,-1))) {
+        // if (currentTurn == 1 || currentTurn == 2) {
+            // simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
             int currentX = currentLocation.x;
             int currentY = currentLocation.y;
             lastPoint.setLocation(currentX, currentY);
@@ -64,14 +64,14 @@ public class Controller extends chemotaxis.sim.Controller {
             // calculate angle between agent and target 
             double angle = Math.toDegrees(Math.atan2(this.target.y - currentY, this.target.x - currentX));
 
-            if (angle < 0){
+            if (angle < 0) {
                 angle += 360;
             }
                     
             // Pass angle into language --> returns with where to place colors
-            String placements = lang.getColor(angle);
+            String placements = trans.getColor(angle);
             // simPrinter.println("Calculated angle is: " + angle + " degrees.");
-            simPrinter.println("Placing new chemical: " + placements);
+            // simPrinter.println("Placing new chemical: " + placements);
 
             // Break apart colors to see where to place, ex => "d_GB"
             if (placements.charAt(0) == 'u') 
@@ -98,5 +98,6 @@ public class Controller extends chemotaxis.sim.Controller {
         }
 
         return new ChemicalPlacement();
-	} 	
+    } 	
+
 }
