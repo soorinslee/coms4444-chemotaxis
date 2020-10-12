@@ -47,22 +47,22 @@ public class Simulator {
 	
 	// Defaults
 	private static boolean validMap = true;
-	private static boolean enableControllerPrints = true;//false;
-	private static boolean enableAgentPrints = true; //false;
+	private static boolean enableControllerPrints = false;
+	private static boolean enableAgentPrints = false;
 	private static int chemicalsRemaining = budget;
 	private static Point start, target, agentLocation;
 	private static List<Point> blockedLocations;
 	private static Map<ChemicalType, Integer> chemicalsUsed;
 	private static int mapSize = 100;
-	private static long timeout = Integer.MAX_VALUE;//1000;
+	private static long timeout = 1000;
 	private static int currentTurn = 0;
 	private static String version = "1.0";
 	private static String projectPath, sourcePath, staticsPath, guiPath;
     
 
 	private static void setup() {
-		projectPath = new File(".").getAbsolutePath().substring(0, 
-				new File(".").getAbsolutePath().indexOf("project-2") + "project-2".length());
+		projectPath = new File(".").getAbsolutePath().substring(0,
+				new File(".").getAbsolutePath().indexOf("coms4444-chemotaxis") + "coms4444-chemotaxis".length());
 		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
 	}
