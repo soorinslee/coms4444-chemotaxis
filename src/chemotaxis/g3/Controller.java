@@ -16,6 +16,7 @@ public class Controller extends chemotaxis.sim.Controller {
     
     Point lastPoint = new Point(-1,-1);
     private Translator trans = null;
+    private String lastPlacement = null;
 
     /**
      * Controller constructor
@@ -48,30 +49,35 @@ public class Controller extends chemotaxis.sim.Controller {
 	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
         // TODO implement UwLR, DwLR, LwUD, RwUD, pause
         // TODO: instruct agent to make it to open field 
+        // TODO: use isPerfectAngle to see if there is a perfect path 
+        //       that's more direct than the current trajectory 
+        //       and has no obstacles 
         // TODO: find obstacles in path
 
-        simPrinter.println("\ncurrent turn: " + currentTurn);
-        if (lastPoint.equals(currentLocation) || lastPoint.equals(new Point(-1,-1))) {
-        // if (currentTurn == 1 || currentTurn == 2) {
+        // cell's current location
+        int currentX = currentLocation.x;
+        int currentY = currentLocation.y;
+
+        // calculate angle between agent and target 
+        double angle = Math.toDegrees(Math.atan2(this.target.y - currentY, this.target.x - currentX));
+
+        if (angle < 0) 
+            angle += 360;
+
+        // Pass angle into language --> returns with where to place colors
+        String placements = trans.getColor(angle);
+        // simPrinter.println("Calculated angle is: " + angle + " degrees.");
+        // simPrinter.println("Placing new chemical: " + placements);
+
+        // simPrinter.println("\ncurrent turn: " + currentTurn);
+        if (lastPoint.equals(currentLocation) || lastPoint.equals(new Point(-1,-1)) 
+            || ((angle%90 == 0) && !(placements.equals(lastPlacement))) ) {
             // simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
-            int currentX = currentLocation.x;
-            int currentY = currentLocation.y;
+            lastPlacement = placements;
             lastPoint.setLocation(currentX, currentY);
             
             ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
             List<ChemicalType> chemicals = new ArrayList<>();
-
-            // calculate angle between agent and target 
-            double angle = Math.toDegrees(Math.atan2(this.target.y - currentY, this.target.x - currentX));
-
-            if (angle < 0) {
-                angle += 360;
-            }
-                    
-            // Pass angle into language --> returns with where to place colors
-            String placements = trans.getColor(angle);
-            // simPrinter.println("Calculated angle is: " + angle + " degrees.");
-            // simPrinter.println("Placing new chemical: " + placements);
 
             // Break apart colors to see where to place, ex => "d_GB"
             if (placements.charAt(0) == 'u') 
@@ -96,7 +102,8 @@ public class Controller extends chemotaxis.sim.Controller {
             
             return chemicalPlacement;
         }
-
+        
+        lastPoint.setLocation(currentX, currentY);
         return new ChemicalPlacement();
     } 	
 

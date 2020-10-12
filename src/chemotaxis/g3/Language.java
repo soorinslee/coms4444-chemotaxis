@@ -36,11 +36,10 @@ public final class Language {
             // TODO: implement directions with color and byte, 
             //          right now we are not using the byte info other than +- for previous movement 
             //          since an instruction stops + redirects movement 
-            //          but we need to implement something like "reverse direction"
-            //          or "stay on wall"
+            //          but we need to have some indicator for what to do on a wall, for example
 
             // if (box >= 28 && box <= 34) {
-                // // TODO: a non-movement based communication with cRGB
+                // // TODO: an atypical communication with cRGB
                     // like when instruction is to change motion type of agent or stop moving
                 // ;
             // }
@@ -87,7 +86,7 @@ public final class Language {
         public static Byte getByte(char[] s) {
             Integer i = stateToByte.get(String.valueOf(s));
             if (i == null) 
-                System.out.println("Invalid key in getByte: " + stateToByte.get(String.valueOf(s)));
+                simPrinter.println("Invalid key in getByte: " + stateToByte.get(String.valueOf(s)));
             return i.byteValue();
         }
 
@@ -194,6 +193,21 @@ public final class Language {
                     }
                 }
             }
+        }
+
+        private static Boolean isPerfectAngle(double angle) {
+            return (angle == 0.0  
+                    || angle == 18.43 || angle == 26.57 
+                    || angle == 45.0 || angle == 63.43 || angle == 71.57 
+                    || angle == 90.0  
+                    || angle == 108.43 || angle == 116.57 
+                    || angle == 135 || angle == 153.43 || angle == 161.57 
+                    || angle == 180.0
+                    || angle == 198.83 || angle == 206.57 
+                    || angle == 225 || angle == 243.43 || angle == 251.57 
+                    || angle == 270.0
+                    || angle == 288.43 || angle == 296.57 
+                    || angle == 315 || angle == 333.43 || angle == 341.57);
         }
 
         // change if remapping color + direction to a new cell 

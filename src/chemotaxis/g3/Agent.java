@@ -37,7 +37,7 @@ public class Agent extends chemotaxis.sim.Agent {
 	@Override
 	public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
         // TODO: self-realize silent + n/a, pause
-        // TODO: what happens if the state instructed is fully blocked off? 
+        // TODO: start moving erratically if haven't had instructions for a bit 
         Move move = new Move();
         Integer prevByte = (int) previousState;
         char[] nextState = new char[9];
@@ -46,7 +46,7 @@ public class Agent extends chemotaxis.sim.Agent {
         String instructionCheck = checkForInstructions(currentCell, neighborMap);
         String prevState = null;
 
-        // System.out.println("New instruction: " + instructionCheck);
+        // simPrinter.println("New instruction: " + instructionCheck);
         
         // if instruction exists, get the new state
         if (instructionCheck != null) {
@@ -63,26 +63,31 @@ public class Agent extends chemotaxis.sim.Agent {
 
         // based on the prevState, check the surroundings and find an opening for the next move 
         if (prevState.equals("pause")) {
+            // simPrinter.println("Agent is paused");
             move.directionType = DirectionType.CURRENT;
             nextState = "pause".toCharArray();
         }
+        // else if (blocked(prevState, neighborMap)) {
+        //     nextState = moveWithBlock(nextState, prevState, neighborMap);
+        //     move.DirectionType = blockMoveDirection(nextState);
+        // }
         else if (mobilityUp(prevState, neighborMap)) {
-            System.out.println("Agent can + should move east/up");
+            // simPrinter.println("Agent can + should move east/up");
             nextState =  moveInY(nextState, prevState);
             move.directionType = DirectionType.EAST;
         }
         else if (mobilityDown(prevState, neighborMap)) {
-            System.out.println("Agent can + should move west/down");
+            // simPrinter.println("Agent can + should move west/down");
             nextState =  moveInY(nextState, prevState);
             move.directionType = DirectionType.WEST;
         }
         else if (mobilityLeft(prevState, neighborMap)) {
-            System.out.println("Agent can + should move north/left");
+            // simPrinter.println("Agent can + should move north/left");
             nextState = moveInX(nextState, prevState);
             move.directionType = DirectionType.NORTH;
         }
         else if (mobilityRight(prevState, neighborMap)) {
-            System.out.println("Agent can + should move south/right");
+            // simPrinter.println("Agent can + should move south/right");
             nextState = moveInX(nextState, prevState);
             move.directionType = DirectionType.SOUTH;
         }
@@ -92,10 +97,10 @@ public class Agent extends chemotaxis.sim.Agent {
         }
 
         // translate to Byte for memory 
-        Byte p = trans.getByte(nextState);
-        simPrinter.println("Byte for next round: " + p);
-        simPrinter.println("State for next round: " + String.valueOf(nextState));
-        move.currentState = p;
+        Byte nextByte = trans.getByte(nextState);
+        // simPrinter.println("Byte for next round: " + nextByte);
+        // simPrinter.println("State for next round: " + String.valueOf(nextState));
+        move.currentState = nextByte;
 		return move;
     }
     
@@ -141,9 +146,6 @@ public class Agent extends chemotaxis.sim.Agent {
         return null;
     }
 
-    //  X    ±    N   [.*]  Y    ±    M   [.*] [C/R]
-    // '0', '+', '0', '*', '0', '+', '0', '.', 'C'
-    //  0    1    2    3    4    5    6    7    8
     private Boolean mobilityUp(String state, Map<DirectionType, ChemicalCell> surroundings) {
         // There's space above this cell
         // and the instuction is moving in that direction
@@ -181,6 +183,76 @@ public class Agent extends chemotaxis.sim.Agent {
         );
     }
 
+    private Boolean blocked(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        return (followingWall(state) || blockedInX(surroundings) || blockedInY(surroundings));
+    }
+
+    // private char[] moveWithBlock(char[] nextState, String prevState, Map<DirectionType, ChemicalCell> surroundings) {
+    //     // if you previously were blocked in an axis and no longer am
+    //     if (followingWall(prevState) && prevState.charAt(0) == 'Y' && !blockedInY(surroundings) {
+    //         // take the movement from before and apply it to you now if possible
+    //         // if you are blocked in that direction, turn around and follow the previous wall in the opposite direction
+    //     }
+
+    //     if (followingWall(prevState) && prevState.charAt(0) == 'X' && !blockedInX(surroundings) {
+
+    //     }
+
+    //     if (!followingWall(prevState) && blockedInX(surroundings)) {
+    //         // see if you can continue moving in that position
+    //             // if not, translate to blocked language 
+    //             // if so, move in that direction and keep going 
+    //     }
+
+    //     if (!followingWall(prevState) && blockedInY(surroundings)) {
+
+    //     }
+
+    //     // if moving in perpendicular manner and not don't know which direction to move in 
+    //         // random 
+            
+        
+
+    //     // if you were previously blocked and still are 
+    //         // which axis are you blocked in?
+    //         // both
+    //             // turn around, follow previous wall in opposite direction
+    //         // new axis, but not old
+    //             // follow axis in preferable directoin if possible
+        
+    //     return nextState;
+    // }
+
+    private DirectionType blockMoveDirection(char[] nextState) {
+        if (nextState[8] == 'W') {
+            if (nextState[1] == 'R') return DirectionType.SOUTH;
+            else if (nextState[1] == 'L') return DirectionType.NORTH;
+            else if (nextState[1] == 'U') return DirectionType.EAST;
+            else  return DirectionType.WEST;
+        }
+        else {
+            if (nextState[3] == '*' && nextState[7] == '.') {
+                if (nextState[1] == '+') return DirectionType.SOUTH;
+                else return DirectionType.NORTH;
+            }
+            else {
+                if (nextState[5] == '+') return DirectionType.EAST;
+                else return DirectionType.WEST;
+            }
+        }
+    }
+
+    private Boolean blockedInX(Map<DirectionType, ChemicalCell> surroundings) {
+        return (surroundings.get(DirectionType.NORTH).isBlocked()
+                || surroundings.get(DirectionType.SOUTH).isBlocked());
+    }
+
+    private Boolean blockedInY(Map<DirectionType, ChemicalCell> surroundings) {
+        return (surroundings.get(DirectionType.WEST).isBlocked()
+                || surroundings.get(DirectionType.EAST).isBlocked());
+    }
+
+    // creates new state string according to translation laws, preserving direction
     private char[] moveInX(char[] nextState, String prevState) {
         if (needsToRepeat(prevState)) {
             nextState = new char[] { '0', prevState.charAt(1), prevState.charAt(2), '*',
@@ -222,5 +294,6 @@ public class Agent extends chemotaxis.sim.Agent {
     private Boolean followingWall(String state) {
         return state.charAt(8) == 'W';
     }
+    
 
 }
