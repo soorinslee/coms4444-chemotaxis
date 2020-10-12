@@ -2,8 +2,6 @@ package chemotaxis.g2;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.BitSet;
-import java.util.zip.CheckedInputStream;
 
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.ChemicalCell;
@@ -42,18 +40,21 @@ public class Agent extends chemotaxis.sim.Agent {
             if (concentration.getValue() == 1.0) {
                 ChemicalCell.ChemicalType chemicalType = concentration.getKey();
                 DirectionType newDir = chemicalDirections.get(chemicalType);
+                simPrinter.println("Agent going " + newDir.toString());
                 return buildMove(newDir, previousState);
             }
         }
 
         DirectionType independentDir = getIndependentDir(neighborMap, prevDir);
         if (independentDir != null) {
+            simPrinter.println("Agent going " + independentDir.toString());
             return buildMove(independentDir, previousState);
         }
 
         Move move = new Move();
-        move.directionType = DirectionType.CURRENT;
+        move.directionType = prevDir;
         move.currentState = previousState;
+        simPrinter.println("Agent going " + prevDir.toString());
         return move;
     }
 
@@ -101,11 +102,11 @@ public class Agent extends chemotaxis.sim.Agent {
         int newStateInt = previousState.intValue();
 
         // set last 2 bits to 0
-        newStateInt &= ~(1 << 6);
-        newStateInt &= ~(1 << 7);
+        int mask = -4; // -4 => 11111100
+        newStateInt &= mask;
 
         // set last 2 bits to direction bits
-        newStateInt &= dirByte.intValue();
+        newStateInt |= dirByte.intValue();
 
         return (byte) newStateInt;
     }
