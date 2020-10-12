@@ -19,8 +19,7 @@ public class Controller extends chemotaxis.sim.Controller {
 	List<Point> routeList = new ArrayList<Point>();
 	int colorIndex = 0;
 	int lastSpotIndex = 0;
-
-
+	boolean endReached = false;
 	/**
 	 * Controller constructor
 	 *
@@ -58,7 +57,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
 		ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
 
-		if (currentTurn == 2) {
+		if (currentTurn == 1) {
  			routeList = getShortestPath(start, target, grid);
  			//simPrinter.println(routeList);
  			for (Point p: routeList) {
@@ -68,8 +67,12 @@ public class Controller extends chemotaxis.sim.Controller {
 
 		else if (currentTurn % 5 == 0 && !(routeList.get(lastSpotIndex).equals(target))) {
 			nextCorner = getNextCorner();
+			simPrinter.println("nextCorner: " + nextCorner.x + " " + nextCorner.y);
 			setNextPlacement(nextCorner, chemicalPlacement, chemicals);
 		}
+
+		else if (endReached)
+			simPrinter.println("Turn: " + currentTurn + "  at: " + currentLocation.x + " " + currentLocation.y);
 
 		return chemicalPlacement;
 	}
@@ -126,60 +129,62 @@ public class Controller extends chemotaxis.sim.Controller {
 		while (!queue.isEmpty()) {
 			Node popped = queue.poll(); 
 			if (popped.x == target.x && popped.y == target.y) {
-				////simPrinter.println("reached target");
+				//simPrinter.println("reached target: ");
 				solution = popped;
 				break;
 			}
-			else if (!visited[popped.x][popped.y] && !grid[popped.x][popped.y].isBlocked()) {
-				visited[popped.x][popped.y] = true;
+			else if (!visited[popped.x-1][popped.y-1] && !grid[popped.x-1][popped.y-1].isBlocked()) {
+				visited[popped.x-1][popped.y-1] = true;
 				List<Node> neighborList = addNeighbors(popped, grid, visited);
-				//simPrinter.println(neighborList.size());
+
 				queue.addAll(neighborList);
 			}
 		}
-		
+		//simPrinter.println("PRE");
 		List<Point> path = new LinkedList<Point>(); 
-		while (solution != null && solution.parent != null) {
-			
-			path.add(new Point(solution.x, solution.y)); 
+		while (solution != null) {
+			path.add(new Point(solution.x, solution.y));
+			//simPrinter.println(solution.x + " " + solution.y);
 			solution = solution.parent;
+			
 		}
+		//simPrinter.println("POST");
 		Collections.reverse(path);
 		for (Point p: path) {
- 				simPrinter.println(p.x + " " + p.y);
+ 				//simPrinter.println(p.x + " " + p.y);
  		}
 		return path;
 	}
 	
 	private List<Node> addNeighbors(Node current, ChemicalCell[][] grid, boolean[][] visited) {
 		List<Node> list = new LinkedList<Node>();
-		////simPrinter.println("entered method");
-		//simPrinter.println(current.x);
-		//simPrinter.println(current.y);
+		//////simPrinter.println("entered method");
+		////simPrinter.println(current.x);
+		////simPrinter.println(current.y);
 		
-		if((current.x-1 >= 0 && current.x-1 < grid.length) && !visited[current.x - 1][current.y]) {
+		if((current.x - 1 > 0) && !visited[current.x - 2][current.y - 1]) {
 			Node currNode = new Node(current.x-1, current.y);
 			currNode.parent = current;
 			list.add(currNode);
-			////simPrinter.println("added");
+			//simPrinter.println("added 1: " + currNode.x + " " + currNode.y);
 		}
-		if((current.x+1 >= 0 && current.x+1 < grid.length) && !visited[current.x + 1][current.y]) {
+		if((current.x + 1 <= grid.length) && !visited[current.x][current.y - 1]) {
 			Node currNode = new Node(current.x+1, current.y);
 			currNode.parent = current;
 			list.add(currNode);
-			////simPrinter.println("added");
+			//simPrinter.println("added 2: " + currNode.x + " " + currNode.y);
 		}
-		if((current.y-1 >= 0 && current.y-1 < grid.length) && !visited[current.x][current.y - 1]) {
+		if((current.y - 1 > 0) && !visited[current.x - 1][current.y - 2]) {
 			Node currNode = new Node(current.x, current.y - 1);
 			currNode.parent = current;
 			list.add(currNode);
-			////simPrinter.println("added");
+			//simPrinter.println("added 3: " + currNode.x + " " + currNode.y);
 		}
-		if((current.y+1 >= 0 && current.y+1 < grid.length) && !visited[current.x][current.y + 1]) {
+		if((current.y + 1 <= grid.length) && !visited[current.x - 1][current.y]) {
 			Node currNode = new Node(current.x, current.y + 1);
 			currNode.parent = current;
 			list.add(currNode);
-			////simPrinter.println("added");
+			//simPrinter.println("added 4: " + currNode.x + " " + currNode.y);
 
 		}		
 		return list;
@@ -201,13 +206,20 @@ public class Controller extends chemotaxis.sim.Controller {
 		
 		Point nextSpot = new Point();
 
-		for (int i = 0; i < 4; i++){
+		for (int i = 0; i < 5; i++){
 			nextSpot = routeList.get(i + lastSpotIndex);
-			if (nextSpot.equals(nextCorner) || nextSpot.equals(this.target))
+			
+			if (nextSpot.equals(this.target)){
+				endReached = true;
+				break;
+			}
+			else if (nextSpot.equals(nextCorner))
 				break;
 		}
+
 		chemicalPlacement.location = nextSpot;
 		lastSpotIndex = routeList.indexOf(nextSpot);
+		simPrinter.println("Drop Point: " +nextSpot.x + " " + nextSpot.y + " At: " + lastSpotIndex);
 
 		switch (colorIndex) {
 			case 0: chemicals.add(ChemicalType.RED);
@@ -221,11 +233,16 @@ public class Controller extends chemotaxis.sim.Controller {
 	}
 
 	public Point getNextCorner(){
-		int i = 1;
+		int i = 0;
 		Point lastSpot = routeList.get(lastSpotIndex);
-		while (lastSpot.x == routeList.get(lastSpotIndex + i).x || lastSpot.y == routeList.get(lastSpotIndex + i).y)
-			i++;
+		simPrinter.println("Point: " +lastSpot.x + " " + lastSpot.y + " At: " + lastSpotIndex);
+		if (!lastSpot.equals(target))
+			while (lastSpot.x == routeList.get(lastSpotIndex + i).x || lastSpot.y == routeList.get(lastSpotIndex + i).y){
+				if (routeList.get(lastSpotIndex + i).equals(target)){
+					break;
+				}
+				i++;
+			}
 		return routeList.get(i + lastSpotIndex);
 	}
-
 }
