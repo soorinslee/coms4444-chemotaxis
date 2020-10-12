@@ -59,12 +59,17 @@ public class Controller extends chemotaxis.sim.Controller {
         }
         updateAgentAttributes(currentLocation, currentTurn);
 
+        if (turns.size() == 0) {
+            return cp;
+        }
+
         Map.Entry<Point, DirectionType> nextTurn = turns.get(0);
         simPrinter.println("Next turn: " + nextTurn.toString());
         if (nextTurn.getKey().equals(currentLocation)) {
             simPrinter.println("POINTS EQL");
             if (prevDir == nextTurn.getValue()) {
                 simPrinter.print("prevDir: " + prevDir.toString() + " equals " + nextTurn.getValue());
+                turns.remove(0);
                 return cp;
             }
             else if (currentTurn == 1 || chemicalIsRequiredForTurn(currentLocation, grid)) {
@@ -323,12 +328,12 @@ public class Controller extends chemotaxis.sim.Controller {
     private DirectionType findDirection(Point start, Point end) {
         //up
         if(start.getX() < end.getX()) {
-            return DirectionType.NORTH;
+            return DirectionType.SOUTH;
         }
 
         //down
         if(start.getX() > end.getX()) {
-            return DirectionType.SOUTH;
+            return DirectionType.NORTH;
         }
 
         //right
@@ -344,9 +349,8 @@ public class Controller extends chemotaxis.sim.Controller {
         return DirectionType.CURRENT;
     }
 
-    // TODO: for deliverable
     private int getPathCost() {
-        return 0;
+        return turns.size();
     }
 
     private class Node {
