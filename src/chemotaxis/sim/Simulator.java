@@ -61,7 +61,7 @@ public class Simulator {
     
 
 	private static void setup() {
-		projectPath = new File(".").getAbsolutePath().substring(0, 
+		projectPath = new File(".").getAbsolutePath().substring(0,
 				new File(".").getAbsolutePath().indexOf("coms4444-chemotaxis") + "coms4444-chemotaxis".length());
 		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
@@ -457,7 +457,7 @@ public class Simulator {
 				if(agentLocation.y == 1)
 					neighborMap.put(DirectionType.WEST, new ChemicalCell(false));
 				else
-					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
+					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y - 2]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x - 1][agentLocation.y - 1]), deepClone(neighborMap));
 
