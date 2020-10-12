@@ -1,7 +1,9 @@
 package chemotaxis.g2;
 
 import java.awt.Point;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -10,11 +12,13 @@ import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.SimPrinter;
-import java.util.AbstractMap;
 
 public class Controller extends chemotaxis.sim.Controller {
+    private final DirectionType INITIAL_AGENT_DIR = DirectionType.NORTH;
     private ArrayList<Point> shortestPath;
     private ArrayList<Map.Entry<Point, DirectionType>> turns;
+    private DirectionType prevDir;
+    private Point prevLocation;
     /**
      * Controller constructor
      *
@@ -29,7 +33,7 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
-
+        this.prevDir = INITIAL_AGENT_DIR;
     }
 
     /**
@@ -44,18 +48,95 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     @Override
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
+        simPrinter.println("Turn #" + currentTurn.toString());
+        simPrinter.println("Location: " + currentLocation.toString());
+
+        ChemicalPlacement cp = new ChemicalPlacement();
         if (currentTurn == 1) {
             shortestPath = getShortestPath(grid);
             turns = getTurnsList();
+            prevLocation = currentLocation;
         }
-        /*
-        * TODO:
-        *  check for indepent agent moves => if yes do that
-        *  check for turn
-        *  set last move bits
-        * */
+        updateAgentAttributes(currentLocation, currentTurn);
 
-        return null;
+        Map.Entry<Point, DirectionType> nextTurn = turns.get(0);
+        simPrinter.println("Next turn: " + nextTurn.toString());
+        if (nextTurn.getKey().equals(currentLocation)) {
+            simPrinter.println("POINTS EQL");
+            if (prevDir == nextTurn.getValue()) {
+                simPrinter.print("prevDir: " + prevDir.toString() + " equals " + nextTurn.getValue());
+                return cp;
+            }
+            else if (currentTurn == 1 || chemicalIsRequiredForTurn(currentLocation, grid)) {
+                Point point = nextTurn.getKey();
+                DirectionType direction = nextTurn.getValue();
+                Map<DirectionType, ChemicalCell.ChemicalType> chemicalDirections = getChemicalDirections();
+                ChemicalCell.ChemicalType chemicalType = chemicalDirections.get(direction);
+                printColorMap(chemicalDirections);
+                cp.location = point;
+                cp.chemicals.add(chemicalType);
+                turns.remove(0);
+            }
+        }
+        simPrinter.println("Next move: " + cp.toString());
+        return cp;
+    }
+
+    private void updateAgentAttributes(Point currentLocation, Integer currentTurn) {
+        int xDiff = currentLocation.x - this.prevLocation.x;
+        int yDiff = currentLocation.y - this.prevLocation.y;
+
+        if (currentTurn == 1) {
+            this.prevDir = DirectionType.NORTH;
+        }
+        else if (yDiff == -1) {
+            this.prevDir = DirectionType.WEST;
+        }
+        else if (yDiff == 1) {
+            this.prevDir = DirectionType.EAST;
+        }
+        else if (xDiff == -1) {
+            this.prevDir = DirectionType.NORTH;
+        }
+        else if (xDiff == 1) {
+            this.prevDir = DirectionType.SOUTH;
+        }
+        else {
+            this.prevDir = DirectionType.CURRENT;
+        }
+        this.prevLocation = currentLocation;
+    }
+
+    private boolean chemicalIsRequiredForTurn(Point currentLocation, ChemicalCell[][] grid) {
+        return true;
+    }
+
+    private Map<DirectionType, ChemicalCell.ChemicalType> getChemicalDirections() {
+        Map<DirectionType, ChemicalCell.ChemicalType> chemicalDirs = new HashMap<>();
+        // order of elements chemicalTypes and directionTypes is critical to making sure
+        // values map correctly for both agent and controller
+        ChemicalCell.ChemicalType[] chemicalTypes = {
+                ChemicalCell.ChemicalType.RED,
+                ChemicalCell.ChemicalType.GREEN,
+                ChemicalCell.ChemicalType.BLUE
+        };
+
+        DirectionType[] directionTypes = {
+                DirectionType.NORTH,
+                DirectionType.EAST,
+                DirectionType.SOUTH,
+                DirectionType.WEST
+        };
+
+        int dirIndex = 0;
+        for (int i = 0; i < chemicalTypes.length; i++) {
+            if (directionTypes[dirIndex] == prevDir) {
+                dirIndex++;
+            }
+            chemicalDirs.put(directionTypes[dirIndex], chemicalTypes[i]);
+            dirIndex++;
+        }
+        return chemicalDirs;
     }
 
     // TODO: for deliverable
@@ -201,9 +282,6 @@ public class Controller extends chemotaxis.sim.Controller {
 
     // TODO: for deliverable
     private ArrayList<Map.Entry<Point, DirectionType>> getTurnsList() {
-        // look for long diagonals
-        // goes through shortest path to gets turns
-       
        //to print shortest path
         /* System.out.println("shortest path is ");
         for(Point pt : shortestPath) {
@@ -283,6 +361,13 @@ public class Controller extends chemotaxis.sim.Controller {
             this.x = x;
             this.y = y;
             this.dist = dist;
+        }
+
+    }
+
+    private void printColorMap(Map<DirectionType, ChemicalCell.ChemicalType> chemDirs) {
+        for (Map.Entry<DirectionType, ChemicalCell.ChemicalType> chemDir: chemDirs.entrySet()) {
+            simPrinter.println(chemDir.getKey().toString() + ": " + chemDir.getValue().toString());
         }
     }
 
