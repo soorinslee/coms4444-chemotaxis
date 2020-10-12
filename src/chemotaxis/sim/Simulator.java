@@ -61,7 +61,7 @@ public class Simulator {
     
 
 	private static void setup() {
-		projectPath = new File(".").getAbsolutePath().substring(0, 
+		projectPath = new File(".").getAbsolutePath().substring(0,
 				new File(".").getAbsolutePath().indexOf("coms4444-chemotaxis") + "coms4444-chemotaxis".length());
 		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
