@@ -61,7 +61,7 @@ public class Simulator {
     
 
 	private static void setup() {
-		projectPath = new File(".").getAbsolutePath().substring(0,
+		projectPath = new File(".").getAbsolutePath().substring(0, 
 				new File(".").getAbsolutePath().indexOf("coms4444-chemotaxis") + "coms4444-chemotaxis".length());
 		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
@@ -409,11 +409,6 @@ public class Simulator {
 		for(int i = 1; i <= turns; i++) {
 			if(agentAtTarget()) {
 				agentReached = true;
-				break;
-			}
-			if(chemicalsRemaining == 0) {
-				noChemicalsLeft = true;
-				currentTurn = turns;
 				break;
 			}
 			
