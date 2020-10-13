@@ -6,6 +6,7 @@ import chemotaxis.g3.Language.Translator;
 import chemotaxis.sim.DirectionType;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.ChemicalCell.ChemicalType;
+import sun.font.TrueTypeFont;
 import chemotaxis.sim.Move;
 import chemotaxis.sim.SimPrinter;
 
@@ -37,6 +38,7 @@ public class Agent extends chemotaxis.sim.Agent {
 	@Override
 	public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
         // TODO: self-realize silent + n/a, pause
+        // TODO: try to get to a position where you can recieve the most instructions 
         // TODO: start moving erratically if haven't had instructions for a bit 
         Move move = new Move();
         Integer prevByte = (int) previousState;
@@ -67,10 +69,10 @@ public class Agent extends chemotaxis.sim.Agent {
             move.directionType = DirectionType.CURRENT;
             nextState = "pause".toCharArray();
         }
-        // else if (blocked(prevState, neighborMap)) {
-        //     nextState = moveWithBlock(nextState, prevState, neighborMap);
-        //     move.DirectionType = blockMoveDirection(nextState);
-        // }
+        else if (blocked(prevState, neighborMap)) {
+            nextState = moveWithBlock(nextState, prevState, neighborMap);
+            move.DirectionType = blockMoveDirection(nextState);
+        }
         else if (mobilityUp(prevState, neighborMap)) {
             // simPrinter.println("Agent can + should move east/up");
             nextState =  moveInY(nextState, prevState);
@@ -187,41 +189,52 @@ public class Agent extends chemotaxis.sim.Agent {
         return (followingWall(state) || blockedInX(surroundings) || blockedInY(surroundings));
     }
 
-    // private char[] moveWithBlock(char[] nextState, String prevState, Map<DirectionType, ChemicalCell> surroundings) {
-    //     // if you previously were blocked in an axis and no longer am
-    //     if (followingWall(prevState) && prevState.charAt(0) == 'Y' && !blockedInY(surroundings) {
-    //         // take the movement from before and apply it to you now if possible
-    //         // if you are blocked in that direction, turn around and follow the previous wall in the opposite direction
-    //     }
+    private char[] moveWithBlock(char[] nextState, String prevState, Map<DirectionType, ChemicalCell> surroundings) {
+        // if you previously were blocked in an axis and no longer am
+        if (followingWall(prevState) && prevState.charAt(0) == 'Y' && !blockedInY(surroundings) {
+            // take the movement from before and apply it to you now if possible
+            // if you are blocked in that direction, turn around and follow the previous wall in the opposite direction
+        }
 
-    //     if (followingWall(prevState) && prevState.charAt(0) == 'X' && !blockedInX(surroundings) {
+        if (followingWall(prevState) && prevState.charAt(0) == 'X' && !blockedInX(surroundings) {
 
-    //     }
+        }
+        }
+        // if you were previously blocked and still are 
+            // which axis are you blocked in?
+            // both
+                // turn around, follow previous wall in opposite direction
+            // new axis, but not old
+                // follow axis in preferable directoin if possible
+            // same axis
+                // continue on your way 
+        
+        // if you were not blocked before and now you are 
+        if (!followingWall(prevState) && blockedInX(surroundings)) {
+            // see if you can continue moving in your position position
+                // if not, translate to blocked language 
+                // if so, move in that direction and keep going 
+        }
 
-    //     if (!followingWall(prevState) && blockedInX(surroundings)) {
-    //         // see if you can continue moving in that position
-    //             // if not, translate to blocked language 
-    //             // if so, move in that direction and keep going 
-    //     }
+        if (!followingWall(prevState) && blockedInY(surroundings)) {
 
-    //     if (!followingWall(prevState) && blockedInY(surroundings)) {
+        }
 
-    //     }
-
-    //     // if moving in perpendicular manner and not don't know which direction to move in 
-    //         // random 
+        // if moving in perpendicular manner (regardless of your previous movements) 
+        // and not don't know which direction to move in now that you've hit something 
+            // is there a way to move that isn't where you came? 
+            // random 
             
-        
+        try to go where you want
+        try to go somewhere else that you want
+        try not to go back from where you came
+        go back from where you came 
 
-    //     // if you were previously blocked and still are 
-    //         // which axis are you blocked in?
-    //         // both
-    //             // turn around, follow previous wall in opposite direction
-    //         // new axis, but not old
-    //             // follow axis in preferable directoin if possible
+    
+    
         
-    //     return nextState;
-    // }
+        return nextState;
+    }
 
     private DirectionType blockMoveDirection(char[] nextState) {
         if (nextState[8] == 'W') {

@@ -36,7 +36,8 @@ public final class Language {
             // TODO: implement directions with color and byte, 
             //          right now we are not using the byte info other than +- for previous movement 
             //          since an instruction stops + redirects movement 
-            //          but we need to have some indicator for what to do on a wall, for example
+            //          but we need to have some indicator for what to do on a wall among other things
+            //          ^^ make sure to do some decision factor to keep the number of chemicals high, don't run out 
 
             // if (box >= 28 && box <= 34) {
                 // // TODO: an atypical communication with cRGB

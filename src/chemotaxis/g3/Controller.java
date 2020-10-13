@@ -53,6 +53,7 @@ public class Controller extends chemotaxis.sim.Controller {
         //       that's more direct than the current trajectory 
         //       and has no obstacles 
         // TODO: find obstacles in path
+        // TODO: get the agent to the best spot for the best instruction
 
         // cell's current location
         int currentX = currentLocation.x;
