@@ -3,6 +3,7 @@ package chemotaxis.g3;
 import java.awt.Point;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.lang.Math;
 
 import chemotaxis.sim.ChemicalPlacement;
@@ -11,6 +12,7 @@ import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
 
 import chemotaxis.g3.Language.Translator;
+import chemotaxis.g3.PathFinder;
 
 public class Controller extends chemotaxis.sim.Controller {
     
@@ -53,6 +55,9 @@ public class Controller extends chemotaxis.sim.Controller {
         //       that's more direct than the current trajectory 
         //       and has no obstacles 
         // TODO: find obstacles in path
+
+        // find path
+        List<Point> path = PathFinder.getPath(start, target, grid, size);
 
         // cell's current location
         int currentX = currentLocation.x;
