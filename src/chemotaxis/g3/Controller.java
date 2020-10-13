@@ -20,6 +20,10 @@ public class Controller extends chemotaxis.sim.Controller {
     private Translator trans = null;
     private String lastPlacement = null;
 
+    private List<Point> path = null;
+    private Point targetLocation = null;
+    private int steppingStone = 0;
+
     /**
      * Controller constructor
      *
@@ -57,14 +61,24 @@ public class Controller extends chemotaxis.sim.Controller {
         // TODO: find obstacles in path
 
         // find path
-        List<Point> path = PathFinder.getPath(start, target, grid, size);
+        if (path == null) {
+            path = PathFinder.getPath(start, target, grid, size);
+            path = PathFinder.cleanPath(path);
+            targetLocation = path.get(steppingStone++);
+            // PathFinder.triPath(path);
+        }
 
         // cell's current location
         int currentX = currentLocation.x;
         int currentY = currentLocation.y;
 
+        // check to see if we have made it where we need to
+        if (currentLocation.equals(targetLocation)) {
+            targetLocation = path.get(steppingStone++);
+        }
+
         // calculate angle between agent and target 
-        double angle = Math.toDegrees(Math.atan2(this.target.y - currentY, this.target.x - currentX));
+        double angle = Math.toDegrees(Math.atan2(targetLocation.y - currentY, targetLocation.x - currentX));
 
         if (angle < 0) 
             angle += 360;
@@ -75,12 +89,13 @@ public class Controller extends chemotaxis.sim.Controller {
         // simPrinter.println("Placing new chemical: " + placements);
 
         // simPrinter.println("\ncurrent turn: " + currentTurn);
-        if (lastPoint.equals(currentLocation) || lastPoint.equals(new Point(-1,-1)) 
+        if (lastPoint.equals(currentLocation) 
+            || lastPoint.equals(new Point(-1,-1)) 
             || ((angle%90 == 0) && !(placements.equals(lastPlacement))) ) {
             // simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
             lastPlacement = placements;
             lastPoint.setLocation(currentX, currentY);
-            
+
             ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
             List<ChemicalType> chemicals = new ArrayList<>();
 

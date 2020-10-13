@@ -4,14 +4,15 @@ import java.awt.Point;
 import java.util.*; 
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.SimPrinter;
+import java.lang.Math;
 
 public class PathFinder {
 
-    static List<Point> path = new ArrayList<Point>();
     private static SimPrinter simPrinter = new SimPrinter(true);
     
     public PathFinder(Point start, Point target, ChemicalCell[][] grid, Integer size) {
-        this.path = getPath(start, target, grid, size);
+        // this.path = getPath(start, target, grid, size);
+        ;
     }
 
     public static List<Point> getPath(Point start, Point target, ChemicalCell[][] grid, Integer size) {
@@ -33,7 +34,8 @@ public class PathFinder {
 
                     if (!child.equals(target)) {
                         temp.add(child);
-                    } else {
+                    } 
+                    else {
                         temp.add(child);
                         targetReached = true;
                         end = child;
@@ -49,6 +51,7 @@ public class PathFinder {
             pt = parents.get(pt);
         }
 
+        // simPrinter.println(path);
         return path;
     }
 
@@ -78,9 +81,40 @@ public class PathFinder {
             }
         }
 
-        //simPrinter.println("Children: " + Arrays.toString(children.toArray()));
+        // simPrinter.println("Children: " + Arrays.toString(children.toArray()));
 
         return children;
+    }
+
+    public static List<Point> cleanPath(List<Point> path) {
+        Point a = null;
+        Point b = null;
+        Point c = null;
+        double angle = 45f;
+        List<Point> ret = new ArrayList<Point>();
+
+        // ret.add(path.get(0));
+        for (int i = 1; i < path.size() - 1; i++) {
+            a = path.get(i - 1);
+            b = path.get(i);
+            c = path.get(i + 1);
+            if (!sameAngle(a,b,c)) {
+                ret.add(b);
+            }
+        }
+        ret.add(path.get(path.size()-1));
+        return ret;
+        
+    }
+
+    public static List<Point> triPath(List<Point> path) {
+           return null;
+    }
+    
+    private static boolean sameAngle(Point a, Point b, Point c) {
+        double angle1 = Math.toDegrees(Math.atan2(b.y - a.y, b.y - a.y));
+        double angle2 = Math.toDegrees(Math.atan2(c.y - b.y, c.y - b.y));
+        return angle1 == angle2;
     }
 
 }
