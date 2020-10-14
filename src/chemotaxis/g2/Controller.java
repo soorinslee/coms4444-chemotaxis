@@ -60,6 +60,7 @@ public class Controller extends chemotaxis.sim.Controller {
         updateAgentAttributes(currentLocation, currentTurn);
 
         if (turns.size() == 0) {
+            cp.location = currentLocation;
             return cp;
         }
 
@@ -75,11 +76,8 @@ public class Controller extends chemotaxis.sim.Controller {
             else if (currentTurn == 1 || chemicalIsRequiredForTurn(currentLocation, grid)) {
                 Point point = nextTurn.getKey();
                 DirectionType direction = nextTurn.getValue();
-                Map<DirectionType, ChemicalCell.ChemicalType> chemicalDirections = getChemicalDirections();
-                ChemicalCell.ChemicalType chemicalType = chemicalDirections.get(direction);
-                printColorMap(chemicalDirections);
-                cp.location = point;
-                cp.chemicals.add(chemicalType);
+                cp.location = adjPoint(point, direction);
+                cp.chemicals.add(ChemicalCell.ChemicalType.RED);
                 turns.remove(0);
             }
         }
@@ -285,7 +283,6 @@ public class Controller extends chemotaxis.sim.Controller {
     }
 
 
-    // TODO: for deliverable
     private ArrayList<Map.Entry<Point, DirectionType>> getTurnsList() {
        //to print shortest path
         /* System.out.println("shortest path is ");
@@ -347,6 +344,28 @@ public class Controller extends chemotaxis.sim.Controller {
         }
 
         return DirectionType.CURRENT;
+    }
+
+    private Point adjPoint(Point point, DirectionType dir) {
+        Point adjacent = new Point();
+        adjacent.x = point.x;
+        adjacent.y = point.y;
+        switch (dir) {
+            case NORTH:
+                adjacent.x = point.x - 1;
+                break;
+            case SOUTH:
+                adjacent.x = point.x + 1;
+                break;
+            case EAST:
+                adjacent.y = point.y + 1;
+                break;
+            case WEST:
+                adjacent.y = point.y - 1;
+                break;
+        }
+        simPrinter.println("Adj: " + adjacent.toString());
+        return adjacent;
     }
 
     private int getPathCost() {
