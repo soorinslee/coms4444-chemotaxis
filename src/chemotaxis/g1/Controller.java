@@ -10,7 +10,6 @@ import chemotaxis.sim.SimPrinter;
 
 public class Controller extends chemotaxis.sim.Controller {
 
-    private List<Point> path;           // Get shortest path from start point
     private Integer currApplication;    // keep track of where chemicals have been applied on path
     private Integer totalChemicals;     // total number of chemicals
 
@@ -28,7 +27,6 @@ public class Controller extends chemotaxis.sim.Controller {
      */
     public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
         super(start, target, size, simTime, budget, seed, simPrinter);
-        this.path = null;
         this.currApplication = 1;
         this.totalChemicals = 0;
     }
@@ -47,10 +45,12 @@ public class Controller extends chemotaxis.sim.Controller {
     public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
         if (currentTurn == 1) {
             this.totalChemicals = chemicalsRemaining;             // Get total chemicals
-            this.path = getShortestPath(this.start, grid);
         }
+        List<Point> path = getShortestPath(currentLocation, grid);
 
-        // System.out.println(currentLocation)
+        // System.out.println(currentLocation);
+        // System.out.println(path);
+        // System.out.println("~~~~~~~~~~");
 
         // System.out.println(this.path);
 
@@ -75,7 +75,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
         if ((this.currApplication) < path.size()) {        // If not done dropping chemicals along whole path
             chemicalPlacement.chemicals = chemicals;
-            chemicalPlacement.location = path.get(this.currApplication++);
+            chemicalPlacement.location = path.get(1);
         }
 
         return chemicalPlacement;
