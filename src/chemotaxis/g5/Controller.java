@@ -1,4 +1,4 @@
-package chemotaxis.turns;
+package chemotaxis.g5;
 
 import java.awt.GridBagConstraints;
 import java.util.Queue;

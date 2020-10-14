@@ -418,13 +418,13 @@ public class Simulator {
 			placeChemicals(chemicalPlacement);
 			
 			try {
-				// Concentrations less than 0.01 are undetected by the agent
+				// Concentrations less than 0.001 are undetected by the agent
 				ChemicalCell[][] adjustedGrid = deepClone(grid);
 				for(int j = 0; j < adjustedGrid.length; j++) {
 					for(int k = 0; k < adjustedGrid[0].length; k++) {
 						ChemicalCell cell = adjustedGrid[j][k];
 						for(ChemicalType chemicalType : ChemicalType.values()) {
-							if(cell.getConcentration(chemicalType) < 0.01)
+							if(cell.getConcentration(chemicalType) < 0.001)
 								cell.setConcentration(chemicalType, 0.0);
 						}
 					}
