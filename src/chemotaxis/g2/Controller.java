@@ -59,7 +59,7 @@ public class Controller extends chemotaxis.sim.Controller {
         }
         updateAgentAttributes(currentLocation, currentTurn);
 
-        if (true || turns.size() == 0) {
+        if (turns.size() == 0) {
             cp.location = currentLocation;
             return cp;
         }
@@ -353,13 +353,18 @@ public class Controller extends chemotaxis.sim.Controller {
         switch (dir) {
             case NORTH:
                 adjacent.x = point.x - 1;
+                break;
             case SOUTH:
                 adjacent.x = point.x + 1;
+                break;
             case EAST:
                 adjacent.y = point.y + 1;
+                break;
             case WEST:
                 adjacent.y = point.y - 1;
+                break;
         }
+        simPrinter.println("Adj: " + adjacent.toString());
         return adjacent;
     }
 

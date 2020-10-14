@@ -259,33 +259,6 @@ public class Agent extends chemotaxis.sim.Agent {
         }
     }
 
-    /*private DirectionType getPrevDirection(Byte prevState) {
-        byte b = prevState.byteValue();
-        String prevStateStr = String.format("%8s", Integer.toBinaryString(b & 0xFF))
-                .replace(' ', '0');
-        String prevDirectionBits = prevStateStr.substring(5);
-
-        if (prevStateStr.charAt(5) == '0') {
-            return charToNSDir(prevStateStr.charAt(6));
-        }
-        else {
-            return charToEWDir(prevStateStr.c)
-        }
-
-        byte b = prevState.byteValue();
-        String prevStateStr = String.format("%8s", Integer.toBinaryString(b & 0xFF))
-                                    .replace(' ', '0');
-        String prevDirectionBits = prevStateStr.substring(6);
-        int prevDirection = Integer.parseInt(prevDirectionBits, 2);
-        switch (prevDirection) {
-            case 0: return DirectionType.NORTH;
-            case 1: return DirectionType.EAST;
-            case 2: return DirectionType.SOUTH;
-            case 3: return DirectionType.WEST;
-            default: return DirectionType.CURRENT;
-        }
-    }*/
-
     private byte directionToByte(DirectionType dir) {
         switch (dir) {
             case NORTH: return (byte) 0;
