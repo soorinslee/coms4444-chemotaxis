@@ -47,14 +47,14 @@ public class Simulator {
 	
 	// Defaults
 	private static boolean validMap = true;
-	private static boolean enableControllerPrints = true;//false;
-	private static boolean enableAgentPrints = true; //false;
+	private static boolean enableControllerPrints = false;
+	private static boolean enableAgentPrints = false;
 	private static int chemicalsRemaining = budget;
 	private static Point start, target, agentLocation;
 	private static List<Point> blockedLocations;
 	private static Map<ChemicalType, Integer> chemicalsUsed;
 	private static int mapSize = 100;
-	private static long timeout = Integer.MAX_VALUE;//1000;
+	private static long timeout = 1000;
 	private static int currentTurn = 0;
 	private static String version = "1.0";
 	private static String projectPath, sourcePath, staticsPath, guiPath;
@@ -62,7 +62,7 @@ public class Simulator {
 
 	private static void setup() {
 		projectPath = new File(".").getAbsolutePath().substring(0, 
-				new File(".").getAbsolutePath().indexOf("project-2") + "project-2".length());
+				new File(".").getAbsolutePath().indexOf("coms4444-chemotaxis") + "coms4444-chemotaxis".length());
 		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
 	}
@@ -227,6 +227,8 @@ public class Simulator {
 			visitLocations(unvisitedLocations, new ArrayList<>(), 
 					1, mapSize, 1, mapSize, firstUnvisitedLocation.x, firstUnvisitedLocation.y, 0, 0);
 		}
+		else
+			return true;
 		
 		return unvisitedLocations.isEmpty();
 	}
@@ -280,19 +282,19 @@ public class Simulator {
 	private static void moveAgent(DirectionType directionType) {
 		switch(directionType) {
 		case NORTH:
-			if(agentLocation.x > 1)
+			if(agentLocation.x > 1 && !blockedLocations.contains(new Point(agentLocation.x - 1, agentLocation.y)))
 				agentLocation.setLocation(agentLocation.x - 1, agentLocation.y);
 			break;
 		case SOUTH:
-			if(agentLocation.x < mapSize)
+			if(agentLocation.x < mapSize && !blockedLocations.contains(new Point(agentLocation.x + 1, agentLocation.y)))
 				agentLocation.setLocation(agentLocation.x + 1, agentLocation.y);
 			break;
 		case EAST:
-			if(agentLocation.y < mapSize)
+			if(agentLocation.y < mapSize && !blockedLocations.contains(new Point(agentLocation.x, agentLocation.y + 1)))
 				agentLocation.setLocation(agentLocation.x, agentLocation.y + 1);
 			break;
 		case WEST:
-			if(agentLocation.y > 1)
+			if(agentLocation.y > 1 && !blockedLocations.contains(new Point(agentLocation.x, agentLocation.y - 1)))
 				agentLocation.setLocation(agentLocation.x, agentLocation.y - 1);
 			break;
 		case CURRENT: break;
@@ -380,7 +382,10 @@ public class Simulator {
 		boolean mapIsValid = checkMap();
 		if(mapIsValid) {
 			if(verifyMap) {
-				Log.writeToLogFile("The map is valid!");
+				if(mapSize <= 50)
+					Log.writeToLogFile("The map is valid!");
+				else
+					Log.writeToLogFile("The map is too large to verify.");
 				System.exit(1);
 			}
 		}
@@ -404,11 +409,6 @@ public class Simulator {
 		for(int i = 1; i <= turns; i++) {
 			if(agentAtTarget()) {
 				agentReached = true;
-				break;
-			}
-			if(chemicalsRemaining == 0) {
-				noChemicalsLeft = true;
-				currentTurn = turns;
 				break;
 			}
 			
@@ -452,7 +452,7 @@ public class Simulator {
 				if(agentLocation.y == 1)
 					neighborMap.put(DirectionType.WEST, new ChemicalCell(false));
 				else
-					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
+					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y - 2]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x - 1][agentLocation.y - 1]), deepClone(neighborMap));
 

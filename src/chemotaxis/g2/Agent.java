@@ -58,6 +58,7 @@ public class Agent extends chemotaxis.sim.Agent {
         return move;
     }
 
+
     private Move buildMove(DirectionType dir, Byte previousState) {
         Move move = new Move();
         move.directionType = dir;
