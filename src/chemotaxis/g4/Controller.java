@@ -1,4 +1,4 @@
-package chemotaxis.g4; // TODO modify the package name to reflect your team
+package chemotaxis.g4; 
 
 import java.awt.Point;
 import java.util.PriorityQueue;
@@ -18,7 +18,19 @@ import chemotaxis.sim.SimPrinter;
 public class Controller extends chemotaxis.sim.Controller {
     HashMap<Point, Point> came_from;
     HashMap<Point, Integer> cost_so_far;
-    List<Point> path;
+	List<Point> path;
+	
+	private Node[][] bestPath;
+	private PriorityQueue<Node> frontier;
+
+	private int startX;
+	private int startY;
+	private int targetX;
+	private int targetY;
+
+	private int counter = 0;
+
+	private ArrayList<DirectionChange> directionChanges;
 
    /**
     * Controller constructor
@@ -33,7 +45,13 @@ public class Controller extends chemotaxis.sim.Controller {
     *
     */
    public Controller(Point start, Point target, Integer size, Integer simTime, Integer budget, Integer seed, SimPrinter simPrinter) {
-   	super(start, target, size, simTime, budget, seed, simPrinter);
+		super(start, target, size, simTime, budget, seed, simPrinter);
+		this.frontier = new PriorityQueue<>();
+		this.directionChanges = new ArrayList<>(0);
+		this.startX = (int)start.getX() - 1;
+		this.startY = (int)start.getY() - 1;
+		this.targetY = (int)target.getY() - 1;
+		this.targetX = (int)target.getX() - 1;
    }
 
    /**
@@ -47,122 +65,338 @@ public class Controller extends chemotaxis.sim.Controller {
     *
     */
    @Override
-   public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
+	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
 
-      // A* path planning in first round
-      if (currentTurn == 1) {
-        int idxX = this.start.x;
-        int idxY = this.start.y;
+		if (currentTurn == 1) {
+			this.bestPath = new Node[this.size][this.size];
 
-        PriorityQueue<PriorityNode> frontier = new PriorityQueue<>();
-        frontier.add(new PriorityNode(grid[idxX-1][idxY-1], idxX, idxY, 0));
-        came_from = new HashMap<Point, Point>();
-        cost_so_far = new HashMap<Point, Integer>();
+			for (int i = 0; i < this.size; i++) {
+				for (int j = 0; j < this.size; j++) {
+					bestPath[i][j] = new Node();
+				}
+			}
 
-        came_from.put(this.start, null);
-        cost_so_far.put(this.start, 0);
+			bestPath[this.startX][this.startY] = new Node(this.startX, this.startY);
 
-        while (frontier.size() != 0) {
-          PriorityNode current = frontier.remove();
+			frontier.add(bestPath[this.startX][this.startY]);
+			
+			boolean pathFound = false;
+			while (!frontier.isEmpty() && !pathFound) {
+				// System.out.println(counter++ + ",  " + frontier.size());
+				Node currentNode = frontier.remove();
+				
+				// Search path north
+				if (currentNode.getX() > 0) {
+					if (grid[currentNode.getX() - 1][currentNode.getY()].isOpen()) {
+						Node newPath = new Node(currentNode, currentNode.getX() - 1, currentNode.getY());
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							int newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
 
-          //target arrived
-          if (current.getX() == this.target.x && current.getY() == this.target.y) {
-            PriorityNode c = current;
-            int cX = c.getX();
-            int cY = c.getY();
-            Point curPt = new Point(cX, cY);
-            path = new ArrayList<>();
-            path.add(curPt);
-            //System.out.println(cX + ", " + cY);
-            while(came_from.get(curPt) != null) {
-              curPt = came_from.get(curPt);
-              path.add(curPt);
-              //cX = curPt.x;
-              //cY = curPt.y;
-              //System.out.println(cX + ", " + cY);
-            }
-            
-            Collections.reverse(path);
-            System.out.println("------path-----");
-            for (Point waypoint : path) {
-              System.out.println(waypoint);
-            }
-          }
 
-          //for all neighbors of current cell
-          int[][] dir = { {-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-          Integer newX, newY;
-          for (int i = 0; i < 4; i++){
-            newX = current.getX() + dir[i][0];
-            newY = current.getY() + dir[i][1];
+							if ((newTurns < oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
 
-            //neighbor out of bound
-            if (newX < 1 || newY < 1 || newX > size || newY > size) {
-              continue;
-            }
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+						}
+					}
+				}
 
-            ChemicalCell neighbor = grid[newX-1][newY-1];
-            if (neighbor.isBlocked()) {
-              continue;
-            }
+				// Search path south
+				if (currentNode.getX() < this.size - 1) {
+					if (grid[currentNode.getX() + 1][currentNode.getY()].isOpen()) {
+						Node newPath = new Node(currentNode, currentNode.getX() + 1, currentNode.getY());
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							int newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
 
-            Point neighborPos = new Point(newX, newY);
-            Point currentPos = new Point(current.getX(), current.getY());
-            int new_cost = cost_so_far.get(currentPos) + 1;
-            if (!cost_so_far.containsKey(neighborPos) || new_cost < cost_so_far.get(neighborPos)) {
-              cost_so_far.put(neighborPos, new_cost);
-              int h = Math.abs(this.target.x -current.getX()) + Math.abs(this.target.y - current.getY());
-              int priority = new_cost + h;
-              frontier.add(new PriorityNode(neighbor, newX, newY, priority));
-              came_from.put(neighborPos, currentPos);
-            }
-          }
 
-        }
-      
-      }
+							if ((newTurns < oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
 
-      ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
-      List<ChemicalType> chemicals = new ArrayList<>();
-      chemicals.add(ChemicalType.BLUE);
-      chemicalPlacement.location = path.get(currentTurn);
-      chemicalPlacement.chemicals = chemicals;
-      return chemicalPlacement;
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+						}
+					}
+				}
+
+				// Search path east
+				if (currentNode.getY() < this.size - 1) {
+					if (grid[currentNode.getX()][currentNode.getY() + 1].isOpen()) {
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() + 1);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							int newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns < oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+						}
+					}
+				}
+
+				// Search path west
+				if (currentNode.getY() > 0) {
+					if (grid[currentNode.getX()][currentNode.getY() - 1].isOpen()) {
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() - 1);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							int newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns < oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+						}
+					}
+				}
+			}
+
+			// Reconstruct path
+			if (bestPath[this.targetX][this.targetY].getParent() != null) {
+				Node currentNode = bestPath[this.targetX][this.targetY];
+
+				while (currentNode.getParent() != null) {
+					Node parent = currentNode.getParent();
+
+					if (parent.getDirection() != currentNode.getDirection()) {
+						directionChanges.add(new DirectionChange(parent.getX(), parent.getY(), currentNode.getDirection()));
+					}
+
+					currentNode = parent;
+				}
+
+				// for (DirectionChange d : directionChanges) {
+				// 	System.out.println(d.getX() + ", " + d.getY() + ", " + d.getDirection());
+				// }
+
+			}
+
+
+		}
+
+		if (bestPath[this.targetX][this.targetY].getParent() != null) {
+
+			ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+			List<ChemicalType> chemicals = new ArrayList<>();
+			chemicalPlacement.location = new Point(1, 1);
+
+			if (directionChanges.size() > 0 && directionChanges.get(directionChanges.size() - 1).atPostion(currentLocation)) {
+				chemicals.add(ChemicalType.BLUE);
+				Direction direction = directionChanges.get(directionChanges.size() - 1).getDirection();
+				
+				if (direction == Direction.NORTH) {
+					chemicalPlacement.location = new Point((int)currentLocation.getX() - 1, (int)currentLocation.getY());	
+				}
+				else if (direction == Direction.SOUTH) {
+					chemicalPlacement.location = new Point((int)currentLocation.getX() + 1, (int)currentLocation.getY());	
+				}
+				else if (direction == Direction.WEST) {
+					chemicalPlacement.location = new Point((int)currentLocation.getX(), (int)currentLocation.getY() - 1);	
+				}
+				else if (direction == Direction.EAST) {
+					chemicalPlacement.location = new Point((int)currentLocation.getX(), (int)currentLocation.getY() + 1);	
+				}
+				directionChanges.remove(directionChanges.size() - 1);
+			}
+			chemicalPlacement.chemicals = chemicals;
+			
+			//printAppliedChemicals(chemicalPlacement, currentTurn);
+			return chemicalPlacement;
+		}
+	
+		ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+		List<ChemicalType> chemicals = new ArrayList<>();
+		chemicals.add(ChemicalType.BLUE);
+		chemicalPlacement.location = new Point(5, 5);
+		chemicalPlacement.chemicals = chemicals;
+		return chemicalPlacement;
+   }
+
+   private void printAppliedChemicals(ChemicalPlacement placement, int turn) {
+	   System.out.println("Applied at position " + placement.location + "at turn " + turn + "\n=================================================================\n");
    }
 
 }
 
-class PriorityNode implements Comparable<PriorityNode> {
-    private ChemicalCell node;
-    private Integer priority;
-    private int x;
-    private int y;
+class Node implements Comparable<Node> {
+	private Node parent;
+	private int x;
+	private int y;
+	private Direction direction;
+	private int turns;
+	private int length;
 
-    public PriorityNode(ChemicalCell node, int idX, int idY, int priority) {
-        this.node = node;
-        this.x = idX;
-        this.y = idY;
-        this.priority = priority;
+	// Constructor for initial nodes
+	public Node() {
+		this.parent = null;
+		this.x = 0;
+		this.y = 0;
+		this.direction = Direction.NULL;
+		this.turns = 9999999;
+		this.length = 9999999;
+	}
+
+	// Constructor for start node
+	public Node(int x, int y) {
+		this.parent = null;
+		this.x = x;
+		this.y = y;
+		this.direction = Direction.NULL;
+		this.turns = 0;
+		this.length = 0;
+	}
+
+	// Constructor for possible paths
+	public Node(Node parent, int x, int y) {
+		this.parent = parent;
+		this.x = x;
+		this.y = y;
+		this.length = parent.getLength() + 1;
+		// Get direction
+		if (this.x == parent.getX()) {
+			if (this.y > parent.getY()) {
+				this.direction = Direction.EAST;
+			}
+			else {
+				this.direction = Direction.WEST;
+			}
+		}
+		else {
+			if (this.x < parent.getX()) {
+				this.direction = Direction.NORTH;
+			}
+			else {
+				this.direction = Direction.SOUTH;
+			}
+		}
+		if (this.direction == parent.getDirection()) {
+			this.turns = parent.getTurns();
+		}
+		else {
+			this.turns = parent.getTurns() + 1;
+		}
+	}
+
+	@Override
+    public int compareTo(Node other) {
+		if (this.length != other.getLength()) {
+			return this.length - other.getLength();
+		}
+		return this.turns - other.getTurns();	
     }
 
-    public Integer getPriority() {
-      return priority;
-    }
+	public int getX() {
+		return this.x;
+	}
 
-    public int getX() {
-      return x;
-    }
+	public int getY() {
+		return this.y;
+	}
 
-    public int getY() {
-      return y;
-    }
+	public Node getParent() {
+		return this.parent;
+	}
 
-    public ChemicalCell getCell() {
-      return node;
-    }
+	public Direction getDirection() {
+		return this.direction;
+	}
 
-    @Override
-    public int compareTo(PriorityNode other) {
-        return this.getPriority().compareTo(other.getPriority());
-    }
+	public int getTurns() {
+		return this.turns;
+	}
+
+	public int getLength() {
+		return this.length;
+	}
+}
+
+class DirectionChange {
+	private int x;
+	private int y;
+	private Direction direction;
+
+	public DirectionChange(int x, int y, Direction direction) {
+		this.x = x;
+		this.y = y;
+		this.direction = direction;
+	}
+	
+	public boolean atPostion(Point p) {
+		return p.getX() == this.x + 1 && p.getY() == this.y + 1;
+	}
+
+	public int getX() {
+		return this.x;
+	}
+
+	public int getY() {
+		return this.y;
+	}
+
+	public Direction getDirection() {
+		return this.direction;
+	}
+}
+
+enum Direction {
+    NORTH,
+    SOUTH,
+	EAST,
+	WEST,
+	NULL
 }
