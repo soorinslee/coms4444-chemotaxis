@@ -169,8 +169,7 @@ public class Controller extends chemotaxis.sim.Controller {
         int min_dist = Integer.MAX_VALUE;
 
         // loop till queue is empty
-        while (!q.isEmpty())
-        {
+        while (!q.isEmpty()){
             // pop front node from queue and process it
             Node node = q.poll();
 
@@ -181,8 +180,7 @@ public class Controller extends chemotaxis.sim.Controller {
             int dist = node.dist;
 
             // if destination is found, update min_dist and stop
-            if (i == (int) target.getX()-1 && j == (int) target.getY()-1)
-            {
+            if (i == (int) target.getX()-1 && j == (int) target.getY()-1){
                 min_dist = dist;
                 break;
             }
