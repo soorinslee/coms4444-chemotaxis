@@ -37,6 +37,7 @@ public final class Language {
             //          right now we are not using the byte info other than +- for previous movement 
             //          since an instruction stops + redirects movement 
             //          but we need to have some indicator for what to do on a wall among other things
+            //          If on wall and told to go diagonally, just switch those 
             //          ^^ make sure to do some decision factor to keep the number of chemicals high, don't run out 
 
             // if (box >= 28 && box <= 34) {
@@ -50,29 +51,38 @@ public final class Language {
                 // then the newState takes a different form
             String prevState = getState(b); 
            
-            // simPrinter.println("Previous state was: " + prevState);
+            simPrinter.println("Previous state was: " + prevState);
             // change  coords into state string, depending on previous movement
             //     if the prevState is n/a or silent or pause, the defaults will override 
             //                             X    ±    N   [.*]  Y    ±    M   [.*] [C/R]
             char[] newState = new char[] {'0', '+', '0', '*', '0', '+', '0', '.', 'C'};
             //                             0    1    2    3    4    5    6    7    8
-
-            // if doing lateral movement, you continually repeat 
-            if (coords.charAt(1) == '0' || coords.charAt(3) == '0')
-                newState[8] = 'R';
             
-            // correct axis direction
-            if (coords.charAt(0) == '-')
-                newState[1] = '-';
-            if (coords.charAt(2) == '-')
-                newState[5] = '-';
-
             // correct last moved axis 
             if (prevState.charAt(3) == '.') {
                 newState[3] = '.';
                 newState[7] = '*';
             }
-            
+
+            // correct axis direction
+            if (coords.charAt(0) == '-')
+                    newState[1] = '-';
+            if (coords.charAt(2) == '-')
+                newState[5] = '-';
+
+            // if doing lateral movement, you continually repeat 
+            if (coords.charAt(1) == '0' || coords.charAt(3) == '0') {
+                newState[8] = 'R';
+                if (coords.charAt(1) == '0') {
+                    newState[3] = '.';
+                    newState[7] = '*';
+                }
+                else {
+                    newState[7] = '.';
+                    newState[3] = '*';
+                }
+            }
+
             // correct max axis movement
             newState[2] = coords.charAt(1);
             newState[6] = coords.charAt(3);
@@ -89,6 +99,10 @@ public final class Language {
             if (i == null) 
                 simPrinter.println("Invalid key in getByte: " + stateToByte.get(String.valueOf(s)));
             return i.byteValue();
+        }
+
+        public Boolean validByte(char[] s) {
+            return stateToByte.containsKey(String.valueOf(s));
         }
 
         // for interfacing with the Controller
@@ -400,10 +414,38 @@ public final class Language {
             Map.entry("2-3.1-1*R", 28),
             Map.entry("2-3*1-1.R", 29),
             Map.entry("3-3*0-1.R", 30),
-            Map.entry("0+1*0+0.W", 31),
-            Map.entry("0-1*0+0.W", 32),
-            Map.entry("0+0.0+1*W", 33),
-            Map.entry("0+0.0-1*W", 34)
+            Map.entry("YR+X*+Y.W", 31),
+            Map.entry("YL+X*+Y.W", 32),
+            Map.entry("XU+X*+Y.W", 33),
+            Map.entry("XD+X*+Y.W", 34),
+            Map.entry("YR+X.+Y*W", 35),
+            Map.entry("YL+X.+Y*W", 36),
+            Map.entry("XU+X.+Y*W", 37),
+            Map.entry("XD+X.+Y*W", 38),
+            Map.entry("YR+X*-Y.W", 39),
+            Map.entry("YL+X*-Y.W", 40),
+            Map.entry("XU+X*-Y.W", 41),
+            Map.entry("XD+X*-Y.W", 42),
+            Map.entry("YR+X.-Y*W", 43),
+            Map.entry("YL+X.-Y*W", 44),
+            Map.entry("XU+X.-Y*W", 45),
+            Map.entry("XD+X.-Y*W", 46),
+            Map.entry("YR-X*+Y.W", 47),
+            Map.entry("YL-X*+Y.W", 48),
+            Map.entry("XU-X*+Y.W", 49),
+            Map.entry("XD-X*+Y.W", 50),
+            Map.entry("YR-X.+Y*W", 51),
+            Map.entry("YL-X.+Y*W", 52),
+            Map.entry("XU-X.+Y*W", 53),
+            Map.entry("XD-X.+Y*W", 54),
+            Map.entry("YR-X*-Y.W", 55),
+            Map.entry("YL-X*-Y.W", 56),
+            Map.entry("XU-X*-Y.W", 57),
+            Map.entry("XD-X*-Y.W", 58),
+            Map.entry("YR-X.-Y*W", 59),
+            Map.entry("YL-X.-Y*W", 60),
+            Map.entry("XU-X.-Y*W", 61),
+            Map.entry("XD-X.-Y*W", 62)
         );
 
         private final static String[] byteToState = new String[] {
@@ -567,10 +609,38 @@ public final class Language {
             "2-3.1-1*R", // 156 / 28
             "2-3*1-1.R", // 157 / 29
             "3-3*0-1.R", // 158 / 30
-            "0+1*0+0.W", // 159 / 31
-            "0-1*0+0.W", // 160 / 32
-            "0+0.0+1*W", // 161 / 33
-            "0+0.0-1*W"  // 162 / 34
+            "YR+X*+Y.W", // 159 / 31
+            "YL+X*+Y.W", // 160 / 32
+            "XU+X*+Y.W", // 161 / 33
+            "XD+X*+Y.W", // 162 / 34
+            "YR+X.+Y*W", // 163 / 35
+            "YL+X.+Y*W", // 164 / 36
+            "XU+X.+Y*W", // 165 / 37
+            "XD+X.+Y*W", // 166 / 38
+            "YR+X*-Y.W", // 167 / 39
+            "YL+X*-Y.W", // 168 / 40
+            "XU+X*-Y.W", // 169 / 41
+            "XD+X*-Y.W", // 170 / 42
+            "YR+X.-Y*W", // 171 / 43
+            "YL+X.-Y*W", // 172 / 44
+            "XU+X.-Y*W", // 173 / 45
+            "XD+X.-Y*W", // 174 / 46
+            "YR-X*+Y.W", // 175 / 47
+            "YL-X*+Y.W", // 176 / 48
+            "XU-X*+Y.W", // 177 / 49
+            "XD-X*+Y.W", // 178 / 50
+            "YR-X.+Y*W", // 179 / 51
+            "YL-X.+Y*W", // 180 / 52
+            "XU-X.+Y*W", // 181 / 53
+            "XD-X.+Y*W", // 182 / 54
+            "YR-X*-Y.W", // 183 / 55
+            "YL-X*-Y.W", // 184 / 56
+            "XU-X*-Y.W", // 185 / 57
+            "XD-X*-Y.W", // 186 / 58
+            "YR-X.-Y*W", // 187 / 59
+            "YL-X.-Y*W", // 188 / 60
+            "XU-X.-Y*W", // 189 / 61
+            "XD-X.-Y*W"  // 190 / 62
         };
     }
 }

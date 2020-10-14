@@ -3,8 +3,6 @@ package chemotaxis.g3;
 import java.awt.Point;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.lang.Math;
 
 import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
@@ -53,13 +51,16 @@ public class Controller extends chemotaxis.sim.Controller {
      */
  	@Override
 	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
-        // TODO implement UwLR, DwLR, LwUD, RwUD, pause
+        // TODO implement pause, calculate new path when agent is confused 
         // TODO: instruct agent to make it to open field 
         // TODO: use isPerfectAngle to see if there is a perfect path 
         //       that's more direct than the current trajectory 
         //       and has no obstacles 
         // TODO: find obstacles in path
         // TODO: get the agent to the best spot for the best instruction
+            // if going diagonal is key, get them to where diagonal movement is allowed 
+
+        simPrinter.println("\nRound:" + currentTurn);
 
         // find path
         if (path == null) {
@@ -77,6 +78,10 @@ public class Controller extends chemotaxis.sim.Controller {
         if (currentLocation.equals(targetLocation)) {
             targetLocation = path.get(steppingStone++);
         }
+
+        // TODO: check to see if the agent is already on the right track 
+        // TODO: check to see if the agent is on a wall?
+        // TODO: check to see if the agent went in the wrong direction 
 
         // calculate angle between agent and target 
         double angle = Math.toDegrees(Math.atan2(targetLocation.y - currentY, targetLocation.x - currentX));
