@@ -23,6 +23,13 @@ public class Agent extends chemotaxis.sim.Agent {
      * @param simPrinter simulation printer
      *
      */
+
+    enum AgentDefault {
+        MOVERIGHT,
+        MOVEUP,
+        EXPLORE, 
+    }
+    
     public Agent(SimPrinter simPrinter) {
         super(simPrinter);
     }
@@ -50,6 +57,10 @@ public class Agent extends chemotaxis.sim.Agent {
         //     }
         // }
         agentMove.directionType = getStrongestAffinity(neighborMap);
+        if(!isValidMove(agentMove.directionType , neighborMap)){
+            AgentDefault defaultOption =  findAlternativeRoute(agentMove.directionType , neighborMap);
+            return getAgentDefaultMove(defaultOption);
+        }
         return agentMove;
     }
 
@@ -137,6 +148,47 @@ public class Agent extends chemotaxis.sim.Agent {
             return getOppositeDirection(max);
         } else {
             return max;
+        }
+    }
+
+    private boolean isValidMove(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
+        System.out.print(" s. " + neighborCellMap.get(directionType).isOpen() + "\n"); 
+        return neighborCellMap.get(directionType).isOpen();
+    }
+
+    private AgentDefault findAlternativeRoute(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
+        
+        
+        // Set Byte to specify default behaviors
+        // 1. Always go in vertical direction 
+        // 2. Always go in horizantal direction 
+        // 3. Travel Diagonally
+        // 4. Randomly pick a direction
+        
+        
+        return AgentDefault.MOVERIGHT;
+
+    }
+
+    private Move getAgentDefaultMove(AgentDefault defaultOption){
+        Move defmove = new Move();
+        switch (defaultOption) {
+            case MOVEUP:
+                defmove.directionType = DirectionType.NORTH;
+                defmove.currentState = (byte) 1; //makes the agent aware of it current default behavior and stores it in prevState
+                return defmove;
+            case MOVERIGHT:
+                defmove.directionType = DirectionType.EAST;
+                defmove.currentState = (byte) 2;
+                return defmove;
+            case EXPLORE:
+                defmove.directionType = DirectionType.SOUTH; //randomly pick a direction
+                defmove.currentState = (byte) 3;
+                return defmove;
+            default:
+                defmove.directionType = DirectionType.CURRENT;
+                defmove.currentState = (byte) 0;
+                return defmove;
         }
     }
 
