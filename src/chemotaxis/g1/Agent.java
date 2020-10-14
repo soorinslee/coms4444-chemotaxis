@@ -26,10 +26,12 @@ public class Agent extends chemotaxis.sim.Agent {
 
     enum AgentDefault {
         MOVERIGHT,
+        MOVELEFT,
         MOVEUP,
+        MOVEDOWN,
         EXPLORE, 
     }
-    
+
     public Agent(SimPrinter simPrinter) {
         super(simPrinter);
     }
@@ -56,9 +58,11 @@ public class Agent extends chemotaxis.sim.Agent {
         //         agentMove.directionType = getOppositeDirection(key);
         //     }
         // }
+        //TO-DO: need to make use of previousState, when agent fluctuates between states
         agentMove.directionType = getStrongestAffinity(neighborMap);
         if(!isValidMove(agentMove.directionType , neighborMap)){
             AgentDefault defaultOption =  findAlternativeRoute(agentMove.directionType , neighborMap);
+            System.out.print(" df. " + defaultOption + "\n"); 
             return getAgentDefaultMove(defaultOption);
         }
         return agentMove;
@@ -152,22 +156,52 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private boolean isValidMove(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
-        System.out.print(" s. " + neighborCellMap.get(directionType).isOpen() + "\n"); 
+        //System.out.print(" s. " + neighborCellMap.get(directionType).isOpen() + "\n"); 
         return neighborCellMap.get(directionType).isOpen();
     }
 
     private AgentDefault findAlternativeRoute(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
-        
-        
-        // Set Byte to specify default behaviors
-        // 1. Always go in vertical direction 
-        // 2. Always go in horizantal direction 
-        // 3. Travel Diagonally
-        // 4. Randomly pick a direction
-        
-        
-        return AgentDefault.MOVERIGHT;
+     
+        //Check if Blocked corner || blocked left +right || blocked up and down || blocked my current cell
+        if (isCornerEdge(directionType, neighborCellMap) != null){
+            return (isCornerEdge(directionType, neighborCellMap));
+        } else if (isBlockedHorz(directionType, neighborCellMap) != null){
+            return (isBlockedHorz(directionType, neighborCellMap));
+        } else if (isBlockedHorz(directionType, neighborCellMap) != null){
+            return (isBlockedVert(directionType, neighborCellMap));
+        } else {
+        return directionToAgentDefault(getOppositeDirection(directionType));
+        }
+    }
 
+    private AgentDefault isCornerEdge(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
+        if(neighborCellMap.get(DirectionType.WEST).isBlocked() && neighborCellMap.get(DirectionType.NORTH).isBlocked()){
+            return AgentDefault.MOVEDOWN;
+        }
+        else if (neighborCellMap.get(DirectionType.EAST).isBlocked() && neighborCellMap.get(DirectionType.SOUTH).isBlocked()) {
+            return AgentDefault.MOVELEFT;
+        }
+        else if (neighborCellMap.get(DirectionType.NORTH).isBlocked() && neighborCellMap.get(DirectionType.EAST).isBlocked()) {
+            return AgentDefault.MOVERIGHT;
+        } else {
+            return null;
+        }
+    }
+
+    private AgentDefault isBlockedHorz(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
+        if(neighborCellMap.get(DirectionType.WEST).isBlocked() && neighborCellMap.get(DirectionType.EAST).isBlocked()){
+            return AgentDefault.MOVEDOWN; 
+        } else {
+            return null;
+        }
+    }
+
+    private AgentDefault isBlockedVert(DirectionType directionType, Map<DirectionType, ChemicalCell> neighborCellMap){
+        if(neighborCellMap.get(DirectionType.NORTH).isBlocked() && neighborCellMap.get(DirectionType.SOUTH).isBlocked()){
+            return AgentDefault.MOVERIGHT; 
+        } else {
+            return null;
+        }
     }
 
     private Move getAgentDefaultMove(AgentDefault defaultOption){
@@ -181,14 +215,34 @@ public class Agent extends chemotaxis.sim.Agent {
                 defmove.directionType = DirectionType.EAST;
                 defmove.currentState = (byte) 2;
                 return defmove;
-            case EXPLORE:
-                defmove.directionType = DirectionType.SOUTH; //randomly pick a direction
+            case MOVEDOWN:
+                defmove.directionType = DirectionType.SOUTH; 
                 defmove.currentState = (byte) 3;
                 return defmove;
+            case MOVELEFT:
+                defmove.directionType = DirectionType.WEST; 
+                defmove.currentState = (byte) 4;
+                return defmove;
+            // case for explore
             default:
                 defmove.directionType = DirectionType.CURRENT;
                 defmove.currentState = (byte) 0;
                 return defmove;
+        }
+    }
+
+    private AgentDefault directionToAgentDefault(DirectionType directionType){
+        switch (directionType) {
+            case NORTH:
+                return AgentDefault.MOVEUP;
+            case SOUTH:
+                return AgentDefault.MOVEDOWN;
+            case WEST:
+                return AgentDefault.MOVERIGHT;
+            case EAST:
+                return AgentDefault.MOVELEFT;
+            default:
+                return AgentDefault.EXPLORE;
         }
     }
 
