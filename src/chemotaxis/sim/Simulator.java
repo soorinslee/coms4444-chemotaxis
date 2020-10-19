@@ -227,6 +227,8 @@ public class Simulator {
 			visitLocations(unvisitedLocations, new ArrayList<>(), 
 					1, mapSize, 1, mapSize, firstUnvisitedLocation.x, firstUnvisitedLocation.y, 0, 0);
 		}
+		else
+			return true;
 		
 		return unvisitedLocations.isEmpty();
 	}
@@ -280,19 +282,19 @@ public class Simulator {
 	private static void moveAgent(DirectionType directionType) {
 		switch(directionType) {
 		case NORTH:
-			if(agentLocation.x > 1)
+			if(agentLocation.x > 1 && !blockedLocations.contains(new Point(agentLocation.x - 1, agentLocation.y)))
 				agentLocation.setLocation(agentLocation.x - 1, agentLocation.y);
 			break;
 		case SOUTH:
-			if(agentLocation.x < mapSize)
+			if(agentLocation.x < mapSize && !blockedLocations.contains(new Point(agentLocation.x + 1, agentLocation.y)))
 				agentLocation.setLocation(agentLocation.x + 1, agentLocation.y);
 			break;
 		case EAST:
-			if(agentLocation.y < mapSize)
+			if(agentLocation.y < mapSize && !blockedLocations.contains(new Point(agentLocation.x, agentLocation.y + 1)))
 				agentLocation.setLocation(agentLocation.x, agentLocation.y + 1);
 			break;
 		case WEST:
-			if(agentLocation.y > 1)
+			if(agentLocation.y > 1 && !blockedLocations.contains(new Point(agentLocation.x, agentLocation.y - 1)))
 				agentLocation.setLocation(agentLocation.x, agentLocation.y - 1);
 			break;
 		case CURRENT: break;
@@ -380,7 +382,10 @@ public class Simulator {
 		boolean mapIsValid = checkMap();
 		if(mapIsValid) {
 			if(verifyMap) {
-				Log.writeToLogFile("The map is valid!");
+				if(mapSize <= 50)
+					Log.writeToLogFile("The map is valid!");
+				else
+					Log.writeToLogFile("The map is too large to verify.");
 				System.exit(1);
 			}
 		}
@@ -406,11 +411,6 @@ public class Simulator {
 				agentReached = true;
 				break;
 			}
-			if(chemicalsRemaining == 0) {
-				noChemicalsLeft = true;
-				currentTurn = turns;
-				break;
-			}
 			
 			currentTurn++;
 			
@@ -418,13 +418,13 @@ public class Simulator {
 			placeChemicals(chemicalPlacement);
 			
 			try {
-				// Concentrations less than 0.01 are undetected by the agent
+				// Concentrations less than 0.001 are undetected by the agent
 				ChemicalCell[][] adjustedGrid = deepClone(grid);
 				for(int j = 0; j < adjustedGrid.length; j++) {
 					for(int k = 0; k < adjustedGrid[0].length; k++) {
 						ChemicalCell cell = adjustedGrid[j][k];
 						for(ChemicalType chemicalType : ChemicalType.values()) {
-							if(cell.getConcentration(chemicalType) < 0.01)
+							if(cell.getConcentration(chemicalType) < 0.001)
 								cell.setConcentration(chemicalType, 0.0);
 						}
 					}
@@ -452,7 +452,7 @@ public class Simulator {
 				if(agentLocation.y == 1)
 					neighborMap.put(DirectionType.WEST, new ChemicalCell(false));
 				else
-					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y]);
+					neighborMap.put(DirectionType.WEST, adjustedGrid[agentLocation.x - 1][agentLocation.y - 2]);
 				
 				Move move = agentWrapper.makeMove(random.nextInt(), previousState, deepClone(adjustedGrid[agentLocation.x - 1][agentLocation.y - 1]), deepClone(neighborMap));
 
