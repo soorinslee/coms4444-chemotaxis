@@ -318,7 +318,7 @@ public class Controller extends chemotaxis.sim.Controller {
         Comparator<Node> turnsComparatorWon = (Node n1, Node n2) ->
         {return (n1.turns) - (n2.turns);};
 
-        Collections.sort(neighbors, turnsComparatorWon);
+        if(useTurns) Collections.sort(neighbors, turnsComparatorWon);
 
         return neighbors;
     }
