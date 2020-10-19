@@ -259,7 +259,6 @@ public class Controller extends chemotaxis.sim.Controller {
         return finalPath;
     }
 
-
     /**
      * Get available neighbors of a cell
      *
@@ -362,6 +361,7 @@ public class Controller extends chemotaxis.sim.Controller {
                 visited[cur.x-1][cur.y-1] = true;
             }
         }
+
         return allPaths;
     }
 
