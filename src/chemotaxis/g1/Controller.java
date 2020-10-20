@@ -282,7 +282,7 @@ public class Controller extends chemotaxis.sim.Controller {
         System.out.println("SHORTEST PATH:");
         System.out.println(path);
 
-        int turns = 3;
+        int turns = 4;
         Map<Point, List<Point>> allPaths = test.getAllPathsFromTarget(grid, turns);
         // System.out.println(allPaths);
         System.out.println("~~~~~~");
