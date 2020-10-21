@@ -15,6 +15,7 @@ public class Controller extends chemotaxis.sim.Controller {
     private List<Point> myPath;
     private List<Point> myTurnPath;
     private Map<Point, List<Point>> myAllKPaths;
+    private boolean onPathToTarget;
 
     /**
      * Controller constructor
@@ -35,6 +36,7 @@ public class Controller extends chemotaxis.sim.Controller {
         this.myTurnPath = new ArrayList<>();
         this.myPath = new ArrayList<>();
         this.myAllKPaths = new HashMap<>();
+        this.onPathToTarget = false;
     }
 
     /**
@@ -58,6 +60,7 @@ public class Controller extends chemotaxis.sim.Controller {
             //System.out.println(this.allKPaths.keySet().contains(start));
             //System.out.println("TURNS: \n"+myTurnPath + "\n \n");
         }
+
 //        if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining))) {
 //            System.out.println("Paths unequal\n");
 //            System.out.println(this.myPath + "\n");
@@ -72,7 +75,18 @@ public class Controller extends chemotaxis.sim.Controller {
         List<ChemicalType> chemicals = new ArrayList<>();
         chemicals.add(ChemicalType.BLUE);
 
-        if (!myTurnPath.isEmpty() && chemicalsRemaining != 0) {
+        // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
+        // This checks if current cell can get to the end with the number of chemicals currently.
+        // If so, then we start directing it to the end.
+        if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.length
+                && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)) {
+            this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
+            this.onPathToTarget = true;
+        }
+
+        // If there are enough chemicals to direct to the end
+        else if (!myTurnPath.isEmpty() && this.totalChemicals >= this.myTurnPath.length
+                && chemicalsRemaining != 0) {
             if(closeToTurn(currentLocation, myTurnPath)){
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
