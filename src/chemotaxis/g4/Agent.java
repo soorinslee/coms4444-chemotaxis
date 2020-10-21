@@ -46,14 +46,81 @@ public class Agent extends chemotaxis.sim.Agent {
          if (neighborMap.get(directionType).isBlocked()) {
           blockedNeighbors += 1;
          }
-         if (neighborMap.get(directionType).getConcentration(chosenChemicalType) == 1) {
+         if (neighborMap.get(directionType).getConcentration(ChemicalType.BLUE) == 1) {
+           
             move.currentState = (byte)directionType.ordinal();
-            move.currentState = (byte)(move.currentState.byteValue() - 5);
+            move.currentState = (byte)(move.currentState.byteValue() - 13);
          }
+         else if (neighborMap.get(directionType).getConcentration(ChemicalType.RED) == 1) {
+           // NE-N = 5
+           // NE-E = 6
+           // SE-N = 7
+           // SE-E = 8
+           // NW-N = 9
+           // NW-W = 10
+           // SW-S = 11
+           // SW-S = 12
+           if (directionType == DirectionType.NORTH) {
+             move.currentState = (byte)(5-13);
+           }
+           if (directionType == DirectionType.SOUTH) {
+            move.currentState = (byte)(7-13);
+          }
+         }
+         else if (neighborMap.get(directionType).getConcentration(ChemicalType.GREEN) == 1) {
+          if (directionType == DirectionType.NORTH) {
+            move.currentState = (byte)(9-13);
+          }
+          if (directionType == DirectionType.SOUTH) {
+           move.currentState = (byte)(11-13);
+         }
+        }
        }
 
       if (move.currentState < 0){ //following path
-        move.directionType = DirectionType.values()[move.currentState + 5];
+
+        byte state = (byte)(move.currentState + 13);
+        // if state > 4 then we're moving on a diagonal
+        if (state > 4) {
+          if (state == 5) {
+            move.directionType = DirectionType.NORTH;
+            move.currentState = (byte)(state + 1 - 13);
+          }
+          else if (state == 6) {
+            move.directionType = DirectionType.EAST;
+            move.currentState = (byte)(state - 1 - 13);
+          }
+          else if (state == 7) {
+            move.directionType = DirectionType.SOUTH;
+            move.currentState = (byte)(state + 1 - 13);
+          }
+          else if (state == 8) {
+            move.directionType = DirectionType.EAST;
+            move.currentState = (byte)(state - 1 - 13);
+          }
+          else if (state == 9) {
+            move.directionType = DirectionType.NORTH;
+            move.currentState = (byte)(state + 1 - 13);
+          }
+          else if (state == 10) {
+
+            move.directionType = DirectionType.WEST;
+            move.currentState = (byte)(state - 1 - 13);
+          }
+          else if (state == 11) {
+            move.directionType = DirectionType.SOUTH;
+            move.currentState = (byte)(state + 1 - 13);
+          }
+          else if (state == 12) {
+            move.directionType = DirectionType.WEST;
+            move.currentState = (byte)(state - 1 - 13);
+          }
+        }
+        else {
+          move.directionType = DirectionType.values()[move.currentState + 13];
+
+        }
+
         return move;
       } 
 
@@ -63,15 +130,15 @@ public class Agent extends chemotaxis.sim.Agent {
       if (previousState < 5) {
         DirectionType previous_direction = DirectionType.values()[previousState];
         if (neighborMap.get(previous_direction).isBlocked()) { //wall encountered, randomly make a turn
-          System.out.println("wall");
+          //System.out.println("wall");
           Random rand = new Random();
           boolean makeTurn = false;
           for (int i = 0; i < 20; i++){
             int randomDir = rand.nextInt(4);
             DirectionType dir = DirectionType.values()[randomDir];
-            System.out.println(dir);
-            System.out.println((int)pairs[previousState]);
-            System.out.println(randomDir);
+            //System.out.println(dir);
+            //System.out.println((int)pairs[previousState]);
+            //System.out.println(randomDir);
             if (neighborMap.get(dir).isOpen() && ((int)pairs[previousState]!=randomDir)){ //turn left or turn right
               move.directionType = dir;
               int curState = randomDir;
@@ -80,7 +147,7 @@ public class Agent extends chemotaxis.sim.Agent {
               break;
             }
             if (!makeTurn) { //deadend, turn around 180 deg
-              System.out.println("turning 180");
+              //System.out.println("turning 180");
               move.currentState = (byte)pairs[previousState];
               move.directionType = DirectionType.values()[move.currentState];
             }
