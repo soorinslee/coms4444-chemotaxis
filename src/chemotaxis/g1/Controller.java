@@ -337,16 +337,17 @@ public class Controller extends chemotaxis.sim.Controller {
         Node start = new Node((int)this.target.getX(), (int)this.target.getY(), 0, "");
         queue.add(start);
         Map<Point, List<Point>> allPaths = new HashMap<Point, List<Point>>();
+        int curNumCells = 0;
 
         while (!queue.isEmpty()) {
             Node cur = queue.poll();
             Point curPoint = new Point(cur.x, cur.y);
 
-            if (cur.turns <= turns && !allPaths.containsKey(curPoint)) {
+            if (cur.turns > 0 && cur.turns <= turns && !allPaths.containsKey(curPoint)) {
                 List<Point> path = new ArrayList<Point>();
                 Node temp = cur;
                 while (cur != null) {
-                    path.add(curPoint);
+                    path.add(new Point(cur.x, cur.y));
                     cur = cur.prev;
                 }
                 Collections.reverse(path);
@@ -361,8 +362,35 @@ public class Controller extends chemotaxis.sim.Controller {
                 visited[cur.x-1][cur.y-1] = true;
             }
         }
+        // visualize(grid, allPaths);
 
         return allPaths;
+    }
+
+    /**
+     * Visualize the results of the reverse BFS
+     *
+     * @param grid                game grid/map
+     * @param allPaths            the paths resulting from reverse bfs
+     *
+     */
+    private void visualize(ChemicalCell[][] grid, Map<Point, List<Point>> allPaths) {
+        System.out.println("~~~~~~~~");
+        for (int i=0; i<grid.length; i++){
+            for (int j=0; j<grid[0].length; j++){
+                Point temp = new Point(i+1,j+1);
+                if (grid[i][j].isBlocked())
+                    System.out.print("B  ");
+                else if (allPaths.keySet().contains(temp))
+                    System.out.print("X  ");
+                else if (this.target.equals(temp))
+                    System.out.print("G  ");
+                else
+                    System.out.print("-  ");
+            }
+            System.out.println();
+        }
+        System.out.println("~~~~~~~~");
     }
 
     // Testing the BFS (run with "java chemotaxis/g1/Controller" in /src)
