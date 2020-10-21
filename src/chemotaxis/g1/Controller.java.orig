@@ -61,19 +61,19 @@ public class Controller extends chemotaxis.sim.Controller {
             //System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" + this.allKPaths.keySet());
             System.out.println(this.myAllKPaths.keySet().contains(start));
             //System.out.println("TURNS: \n"+myTurnPath + "\n \n");
-            //Point red_test = myTurnPath.get(0);
-            //System.out.println(red_test.x + " " + red_test.y);
-            //red_test.x = 16;
-            //red_test.y = 41;
-            //myTurnPath.set(0, red_test);
-            this.turnSignals.add(ChemicalType.BLUE);
-            //for (int i = 0; i < myTurnPath.size() - 1; i++) {
-            //    this.turnSignals.add(ChemicalType.BLUE);
-            //}
+            Point red_test = myTurnPath.get(0);
+            System.out.println(red_test.x + " " + red_test.y);
+            red_test.x = 16;
+            red_test.y = 41;
+            myTurnPath.set(0, red_test);
+            this.turnSignals.add(ChemicalType.RED);
+            for (int i = 0; i < myTurnPath.size() - 1; i++) {
+                this.turnSignals.add(ChemicalType.BLUE);
+            }
             // System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" +
             // this.allKPaths.keySet());
             // System.out.println(this.allKPaths.keySet().contains(start));
-            //System.out.println("TURNS: \n" + myTurnPath + "\n \n");
+            System.out.println("TURNS: \n" + myTurnPath + "\n \n");
         }
         // if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid,
         // this.myAllKPaths, chemicalsRemaining))) {
@@ -97,7 +97,7 @@ public class Controller extends chemotaxis.sim.Controller {
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
                 myTurnPath.remove(0);
-                //turnSignals.remove(0);
+                turnSignals.remove(0);
             }
         }
 
@@ -293,8 +293,7 @@ public class Controller extends chemotaxis.sim.Controller {
             if (!visited[cur.x - 1][cur.y - 1]) {
                 List<Node> neighbors = getNeighbors(cur, grid, true);
                 for (Node neighbor : neighbors) {
-                    if((neighbor.x != this.start.x || neighbor.y != this.start.y) && !startNeighbors.contains(neighbor))
-                        queue.add(neighbor);
+                    if((neighbor.x != this.start.x || neighbor.y != this.start.y) && !startNeighbors.contains(neighbor)) queue.add(neighbor);
                 }
                 visited[cur.x - 1][cur.y - 1] = true;
             }
