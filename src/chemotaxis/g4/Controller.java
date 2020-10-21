@@ -87,7 +87,7 @@ public class Controller extends chemotaxis.sim.Controller {
 				timer.callWait(timeout);
 			}
 			catch(Exception e) {
-				System.out.println(currentTurn + " TIMED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				// System.out.println(currentTurn + " TIMED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!");
 				this.previouslyTimedOut = true;
 			}
 
