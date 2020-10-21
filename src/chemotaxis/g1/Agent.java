@@ -55,8 +55,8 @@ public class Agent extends chemotaxis.sim.Agent {
 
     private DirectionType getRandomDirection(DirectionType prev, Integer random) {
         if(getDirectionByte(prev).intValue()%2 == 0) {
-            if(random%2==0) return DirectionType.EAST;
-            else return DirectionType.WEST;
+            if(random%2==0) return DirectionType.WEST;
+            else return DirectionType.EAST;
         }
         else {
             if(random%2==0) return DirectionType.SOUTH;
