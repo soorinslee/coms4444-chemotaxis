@@ -5,13 +5,14 @@ import java.util.*;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.SimPrinter;
 import java.lang.Math;
+import chemotaxis.g3.Language.Translator;
 
 public class PathFinder {
 
+    private Translator trans = Translator.getInstance();
     private static SimPrinter simPrinter = new SimPrinter(true);
     
     public PathFinder(Point start, Point target, ChemicalCell[][] grid, Integer size) {
-        // this.path = getPath(start, target, grid, size);
         ;
     }
 
@@ -144,8 +145,9 @@ public class PathFinder {
         // ret2.add(path.get(path.size()-1));
         // System.out.println(ret2.size());
 
-        return ret;
         
+
+        return ret;
     }
 
     public static List<Point> triPath(List<Point> path) {
@@ -174,6 +176,10 @@ public class PathFinder {
     }
 
     // public static Point blockedBetween(Point a, Point b) {
+    //     double angle = Math.toDegrees(Math.atan2(b.y - a.y, b.y - a.y));
+    //     // see if they are the same box 
+    //     // remove 
+
     //     return new Point();
     // }
 

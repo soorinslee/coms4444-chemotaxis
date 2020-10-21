@@ -98,7 +98,7 @@ public final class Language {
         public static Byte getByte(char[] s) {
             Integer i = stateToByte.get(String.valueOf(s));
             if (i == null) 
-                simPrinter.println("Invalid key in getByte: " + stateToByte.get(String.valueOf(s)));
+                simPrinter.println("Invalid key in getByte: " + String.valueOf(s) + " " + stateToByte.get(String.valueOf(s)));
             return i.byteValue();
         }
 
@@ -143,6 +143,8 @@ public final class Language {
             Map.entry("u__B", 22),
             Map.entry("rR__", 23)
         );
+
+        // public static String getCoords
 
         // never change 
         private final static String[] boxNumToCoords = new String[] {
@@ -415,38 +417,70 @@ public final class Language {
             Map.entry("2-3.1-1*R", 28),
             Map.entry("2-3*1-1.R", 29),
             Map.entry("3-3*0-1.R", 30),
-            Map.entry("YR+X*+Y.W", 31),
-            Map.entry("YL+X*+Y.W", 32),
-            Map.entry("XU+X*+Y.W", 33),
-            Map.entry("XD+X*+Y.W", 34),
-            Map.entry("YR+X.+Y*W", 35),
-            Map.entry("YL+X.+Y*W", 36),
-            Map.entry("XU+X.+Y*W", 37),
-            Map.entry("XD+X.+Y*W", 38),
-            Map.entry("YR+X*-Y.W", 39),
-            Map.entry("YL+X*-Y.W", 40),
-            Map.entry("XU+X*-Y.W", 41),
-            Map.entry("XD+X*-Y.W", 42),
-            Map.entry("YR+X.-Y*W", 43),
-            Map.entry("YL+X.-Y*W", 44),
-            Map.entry("XU+X.-Y*W", 45),
-            Map.entry("XD+X.-Y*W", 46),
-            Map.entry("YR-X*+Y.W", 47),
-            Map.entry("YL-X*+Y.W", 48),
-            Map.entry("XU-X*+Y.W", 49),
-            Map.entry("XD-X*+Y.W", 50),
-            Map.entry("YR-X.+Y*W", 51),
-            Map.entry("YL-X.+Y*W", 52),
-            Map.entry("XU-X.+Y*W", 53),
-            Map.entry("XD-X.+Y*W", 54),
-            Map.entry("YR-X*-Y.W", 55),
-            Map.entry("YL-X*-Y.W", 56),
-            Map.entry("XU-X*-Y.W", 57),
-            Map.entry("XD-X*-Y.W", 58),
-            Map.entry("YR-X.-Y*W", 59),
-            Map.entry("YL-X.-Y*W", 60),
-            Map.entry("XU-X.-Y*W", 61),
-            Map.entry("XD-X.-Y*W", 62)
+            Map.entry("++BUW", 31),
+            Map.entry("++BDW", 32),
+            Map.entry("++BLW", 33),
+            Map.entry("++BRW", 34),
+            Map.entry("+-BUW", 35),
+            Map.entry("+-BDW", 36),
+            Map.entry("+-BLW", 37),
+            Map.entry("+-BRW", 38),
+            Map.entry("-+BUW", 39),
+            Map.entry("-+BDW", 40),
+            Map.entry("-+BLW", 41),
+            Map.entry("-+BRW", 42),
+            Map.entry("--BUW", 43),
+            Map.entry("--BDW", 44),
+            Map.entry("--BLW", 45),
+            Map.entry("--BRW", 46),
+            Map.entry("++xUW", 47),
+            Map.entry("++xDW", 48),
+            Map.entry("++xLW", 49),
+            Map.entry("++xRW", 50),
+            Map.entry("+-xUW", 51),
+            Map.entry("+-xDW", 52),
+            Map.entry("+-xLW", 53),
+            Map.entry("+-xRW", 54),
+            Map.entry("-+xUW", 55),
+            Map.entry("-+xDW", 56),
+            Map.entry("-+xLW", 57),
+            Map.entry("-+xRW", 58),
+            Map.entry("--xUW", 59),
+            Map.entry("--xDW", 60),
+            Map.entry("--xLW", 61),
+            Map.entry("--xRW", 62),
+            Map.entry("++yUW", 63),
+            Map.entry("++yDW", 64),
+            Map.entry("++yLW", 65),
+            Map.entry("++yRW", 66),
+            Map.entry("+-yUW", 67),
+            Map.entry("+-yDW", 68),
+            Map.entry("+-yLW", 69),
+            Map.entry("+-yRW", 70),
+            Map.entry("-+yUW", 71),
+            Map.entry("-+yDW", 72),
+            Map.entry("-+yLW", 73),
+            Map.entry("-+yRW", 74),
+            Map.entry("--yUW", 75),
+            Map.entry("--yDW", 76),
+            Map.entry("--yLW", 77),
+            Map.entry("--yRW", 78),
+            Map.entry("+.XUW", 79),
+            Map.entry("+.XDW", 80),
+            Map.entry("+.XLW", 81),
+            Map.entry("+.XRW", 82),
+            Map.entry("-.XUW", 83),
+            Map.entry("-.XDW", 84),
+            Map.entry("-.XLW", 85),
+            Map.entry("-.XRW", 86),
+            Map.entry(".+YUW", 87),
+            Map.entry(".+YDW", 88),
+            Map.entry(".+YLW", 89),
+            Map.entry(".+YRW", 90),
+            Map.entry(".-YUW", 91),
+            Map.entry(".-YDW", 92),
+            Map.entry(".-YLW", 93),
+            Map.entry(".-YRW", 94)
         );
 
         private final static String[] byteToState = new String[] {
@@ -610,38 +644,70 @@ public final class Language {
             "2-3.1-1*R", // 156 / 28
             "2-3*1-1.R", // 157 / 29
             "3-3*0-1.R", // 158 / 30
-            "YR+X*+Y.W", // 159 / 31
-            "YL+X*+Y.W", // 160 / 32
-            "XU+X*+Y.W", // 161 / 33
-            "XD+X*+Y.W", // 162 / 34
-            "YR+X.+Y*W", // 163 / 35
-            "YL+X.+Y*W", // 164 / 36
-            "XU+X.+Y*W", // 165 / 37
-            "XD+X.+Y*W", // 166 / 38
-            "YR+X*-Y.W", // 167 / 39
-            "YL+X*-Y.W", // 168 / 40
-            "XU+X*-Y.W", // 169 / 41
-            "XD+X*-Y.W", // 170 / 42
-            "YR+X.-Y*W", // 171 / 43
-            "YL+X.-Y*W", // 172 / 44
-            "XU+X.-Y*W", // 173 / 45
-            "XD+X.-Y*W", // 174 / 46
-            "YR-X*+Y.W", // 175 / 47
-            "YL-X*+Y.W", // 176 / 48
-            "XU-X*+Y.W", // 177 / 49
-            "XD-X*+Y.W", // 178 / 50
-            "YR-X.+Y*W", // 179 / 51
-            "YL-X.+Y*W", // 180 / 52
-            "XU-X.+Y*W", // 181 / 53
-            "XD-X.+Y*W", // 182 / 54
-            "YR-X*-Y.W", // 183 / 55
-            "YL-X*-Y.W", // 184 / 56
-            "XU-X*-Y.W", // 185 / 57
-            "XD-X*-Y.W", // 186 / 58
-            "YR-X.-Y*W", // 187 / 59
-            "YL-X.-Y*W", // 188 / 60
-            "XU-X.-Y*W", // 189 / 61
-            "XD-X.-Y*W"  // 190 / 62
+            "++BUW", // 159 / 31
+            "++BDW", // 160 / 32
+            "++BLW", // 161 / 33
+            "++BRW", // 162 / 34
+            "+-BUW", // 163 / 35
+            "+-BDW", // 164 / 36
+            "+-BLW", // 165 / 37
+            "+-BRW", // 166 / 38
+            "-+BUW", // 167 / 39
+            "-+BDW", // 168 / 40
+            "-+BLW", // 169 / 41
+            "-+BRW", // 170 / 42
+            "--BUW", // 171 / 43
+            "--BDW", // 172 / 44
+            "--BLW", // 173 / 45
+            "--BRW", // 174 / 46
+            "++xUW", // 175 / 47
+            "++xDW", // 176 / 48
+            "++xLW", // 177 / 49
+            "++xRW", // 178 / 50
+            "+-xUW", // 179 / 51
+            "+-xDW", // 180 / 52
+            "+-xLW", // 181 / 53
+            "+-xRW", // 182 / 54
+            "-+xUW", // 183 / 55
+            "-+xDW", // 184 / 56
+            "-+xLW", // 185 / 57
+            "-+xRW", // 186 / 58
+            "--xUW", // 187 / 59
+            "--xDW", // 188 / 60
+            "--xLW", // 189 / 61
+            "--xRW", // 190 / 62
+            "++yUW", // 191 / 63
+            "++yDW", // 192 / 64
+            "++yLW", // 193 / 65
+            "++yRW", // 194 / 66
+            "+-yUW", // 195 / 67
+            "+-yDW", // 196 / 68
+            "+-yLW", // 197 / 69
+            "+-yRW", // 198 / 70
+            "-+yUW", // 199 / 71
+            "-+yDW", // 200 / 72
+            "-+yLW", // 201 / 73
+            "-+yRW", // 202 / 74
+            "--yUW", // 203 / 75
+            "--yDW", // 204 / 76
+            "--yLW", // 205 / 77
+            "--yRW", // 206 / 78
+            "+.XUW", // 207 / 79
+            "+.XDW", // 208 / 80
+            "+.XLW", // 209 / 81
+            "+.XRW", // 210 / 82
+            "-.XUW", // 211 / 83
+            "-.XDW", // 212 / 84
+            "-.XLW", // 213 / 85
+            "-.XRW", // 214 / 86
+            ".+YUW", // 215 / 87
+            ".+YDW", // 216 / 88
+            ".+YLW", // 217 / 89
+            ".+YRW", // 218 / 90
+            ".-YUW", // 219 / 91
+            ".-YDW", // 220 / 92
+            ".-YLW", // 221 / 93
+            ".-YRW"  // 222 / 94
         };
     }
 }

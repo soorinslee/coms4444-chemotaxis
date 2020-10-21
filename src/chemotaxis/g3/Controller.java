@@ -20,6 +20,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
     private List<Point> path = null;
     private Point targetLocation = null;
+    private Point expectedLocation = start;
     private int steppingStone = 0;
     // private boolean oooo = true;
 
@@ -51,15 +52,16 @@ public class Controller extends chemotaxis.sim.Controller {
      *
      */
  	@Override
-	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) {
-        // TODO implement pause, calculate new path when agent is confused 
+	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) { 
         // TODO: instruct agent to make it to open field 
-        // TODO: use isPerfectAngle to see if there is a perfect path 
-        //       that's more direct than the current trajectory 
-        //       and has no obstacles 
-        // TODO: find obstacles in path
-        // TODO: get the agent to the best spot for the best instruction
-            // if going diagonal is key, get them to where diagonal movement is allowed 
+
+        Boolean giveInstruction = false;
+        // if (!currentLocation.equals(expectedLocation)) {
+        if (!inVicinity(currentLocation,expectedLocation,1)) {
+            giveInstruction = true;
+            simPrinter.println("Expected: " + expectedLocation);
+            simPrinter.println("At: " + currentLocation);
+        }
 
         simPrinter.println("\nRound:" + currentTurn);
 
@@ -71,17 +73,20 @@ public class Controller extends chemotaxis.sim.Controller {
             // PathFinder.triPath(path);
         }
 
+        // see if the cell has deviated from a path 
+        expectedLocation = PathFinder.getPath(currentLocation, target, grid, size).get(1);
+
         // cell's current location
         int currentX = currentLocation.x;
         int currentY = currentLocation.y;
 
         // check to see if we have made it where we need to
-        if (currentLocation.equals(targetLocation)) {
-            targetLocation = path.get(steppingStone++);
+        if (inVicinity(currentLocation,targetLocation,4)) {
+        // if (currentLocation.equals(targetLocation)) {
+            if (steppingStone < path.size())
+                targetLocation = path.get(steppingStone++);
         }
 
-        // TODO: check to see if the agent is already on the right track 
-        // TODO: check to see if the agent is on a wall?
         // TODO: check to see if the agent went in the wrong direction 
 
         // calculate angle between agent and target 
@@ -99,9 +104,46 @@ public class Controller extends chemotaxis.sim.Controller {
         // if (oooo) {
         //     oooo = false;
         // simPrinter.println("\ncurrent turn: " + currentTurn);
-        if (lastPoint.equals(currentLocation) 
+        // if ((giveInstruction) || ( !agentBlocked(currentLocation, grid)
+        if (giveInstruction) {
+            lastPlacement = placements;
+            lastPoint.setLocation(currentX, currentY);
+            ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+            List<ChemicalType> chemicals = new ArrayList<>();
+
+            double angle2 = Math.toDegrees(Math.atan2(target.y - currentY, target.x - currentX));
+            if (angle2 < 0) 
+                angle2 += 360;
+            placements = trans.getColor(angle2);
+
+            // Break apart colors to see where to place, ex => "d_GB"
+            if (placements.charAt(0) == 'u') 
+                chemicalPlacement.location = new Point(currentX, currentY+1);
+            else if (placements.charAt(0) == 'd') 
+                chemicalPlacement.location = new Point(currentX, currentY-1);
+            else if (placements.charAt(0) == 'l') 
+                chemicalPlacement.location = new Point(currentX-1, currentY);
+            else if (placements.charAt(0) == 'r') 
+                chemicalPlacement.location = new Point(currentX+1, currentY);
+            else 
+                chemicalPlacement.location = new Point(currentX, currentY);
+
+            if (placements.charAt(1) == 'R') 
+                chemicals.add(ChemicalType.RED);
+            if (placements.charAt(2) == 'G') 
+                chemicals.add(ChemicalType.GREEN);
+            if (placements.charAt(3) == 'B') 
+                chemicals.add(ChemicalType.BLUE);
+        
+            chemicalPlacement.chemicals = chemicals;
+            
+            return chemicalPlacement;
+        }
+
+        if (( !agentBlocked(currentLocation, grid)
+            && (lastPoint.equals(currentLocation) 
             || lastPoint.equals(new Point(-1,-1)) 
-            || ((angle%90 == 0) && !(placements.equals(lastPlacement))) ) {
+            || ((angle%90 == 0) && !(placements.equals(lastPlacement)))))) {
             // simPrinter.println("Agent did not move in turn " + (currentTurn - 1) );
             lastPlacement = placements;
             lastPoint.setLocation(currentX, currentY);
@@ -136,5 +178,29 @@ public class Controller extends chemotaxis.sim.Controller {
         lastPoint.setLocation(currentX, currentY);
         return new ChemicalPlacement();
     } 	
+
+    private boolean inVicinity(Point a, Point b, int c) {
+        return (Math.abs(a.x - b.x) <= c || Math.abs(a.y - b.y) <= c);
+    }
+
+    private boolean agentBlocked(Point a, ChemicalCell[][] grid) {
+        boolean one = true;
+        boolean two = true;
+        boolean three = true;
+        boolean four = true;
+        try { one = grid[a.x+1][a.y].isBlocked();
+        } catch (Exception e) { ; }
+        try { two = grid[a.x-1][a.y].isBlocked();
+        } catch (Exception e) { ; }
+        try { three = grid[a.x][a.y+1].isBlocked();
+        } catch (Exception e) { ; }
+        try { four = grid[a.x][a.y-1].isBlocked();
+        } catch (Exception e) { ; }
+        return (one || two || three || four); 
+        // return (grid[a.x+1][a.y].isBlocked()
+        //         || grid[a.x-1][a.y].isBlocked()
+        //         || grid[a.x][a.y+1].isBlocked()
+        //         || grid[a.x][a.y-1].isBlocked());
+    }
 
 }

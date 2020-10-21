@@ -74,27 +74,23 @@ public class Agent extends chemotaxis.sim.Agent {
         }
         if (prevState.equals("0+0*0+0.R") && instructionCheck == null) {
             simPrinter.println("Agent left with no instructionn, wandering");
-            if (downOpen(neighborMap)) {
-                nextState = "0+0.0-1*R".toCharArray();
-                move.directionType = DirectionType.WEST;
+            if (upOpen(neighborMap)) {
+                nextState = "0+0.0+1*R".toCharArray();
+                move.directionType = DirectionType.EAST;
             }
             else if (rightOpen(neighborMap)) {
                 nextState = "0+1*0+0.R".toCharArray();
                 move.directionType = DirectionType.SOUTH;
             }
-            else if (upOpen(neighborMap)) {
-                nextState = "0+0.0+1*R".toCharArray();
-                move.directionType = DirectionType.EAST;
-            }
             else if (leftOpen(neighborMap)) {
                 nextState = "0-1*0+0.R".toCharArray();
                 move.directionType = DirectionType.NORTH;
             }
+            else if (downOpen(neighborMap)) {
+                nextState = "0+0.0-1*R".toCharArray();
+                move.directionType = DirectionType.WEST;
+            }
         }
-        // else if (blocked(prevState, neighborMap)) {
-        //     nextState = moveWithBlock(prevState, neighborMap);
-        //     move.DirectionType = blockMoveDirection(nextState);
-        // }
         else if (mobilityUp(prevState, neighborMap)) {
             simPrinter.println("Agent can + should move east/up");
             nextState =  moveInY(nextState, prevState);
@@ -135,12 +131,16 @@ public class Agent extends chemotaxis.sim.Agent {
             nextState = moveInX(nextState, prevState);
             move.directionType = DirectionType.SOUTH;
         }
+        else if (blocked(prevState, neighborMap)) {
+            nextState = moveWithBlock(prevState, neighborMap);
+            move.directionType = blockMoveDirection(nextState);
+        }
         else {
             simPrinter.println("Agent was paused");
             nextState = "pause".toCharArray();
             move.directionType = DirectionType.CURRENT;
         }
-
+        
         // translate to Byte for memory 
         Byte nextByte = trans.getByte(nextState);
         simPrinter.println("Byte for next round: " + nextByte);
@@ -197,6 +197,7 @@ public class Agent extends chemotaxis.sim.Agent {
         // and moving up is possible according to state
         // and either – not resetting AND you can move up in this cycle 
         //         or – are resetting AND you have not maxed out moves in that axis for this cycle 
+        if (followingWall(state)) return false;
         return (state.charAt(5) == '+'
                 && ((state.charAt(8) == 'C' && state.charAt(4) <= state.charAt(6) - 1) 
                     || (state.charAt(8) == 'R' && state.charAt(4) == state.charAt(6) - 1))
@@ -205,6 +206,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityUpCycle(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(5) == '+' && state.charAt(6) >= '1' && upOpen(surroundings));
     }
 
@@ -213,6 +215,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityDown(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(5) == '-'
                 && ((state.charAt(8) == 'C' && state.charAt(4) <= state.charAt(6) - 1) 
                     || (state.charAt(8) == 'R' && state.charAt(4) == state.charAt(6) - 1))
@@ -221,6 +224,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityDownCycle(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(5) == '-' && state.charAt(6) >= '1' && downOpen(surroundings));
     }
 
@@ -229,6 +233,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityLeft(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(1) == '-'
                 && ((state.charAt(8) == 'C' && state.charAt(0) <= state.charAt(2) - 1) 
                     || (state.charAt(8) == 'R' && state.charAt(0) == state.charAt(2) - 1))
@@ -237,6 +242,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityLeftCycle(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(1) == '-' && state.charAt(2) >= '1' && leftOpen(surroundings));
     }
 
@@ -245,6 +251,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityRight(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(1) == '+'
                 && ((state.charAt(8) == 'C' && state.charAt(0) <= state.charAt(2) - 1) 
                     || (state.charAt(8) == 'R' && state.charAt(0) == state.charAt(2) - 1))
@@ -253,6 +260,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean mobilityRightCycle(String state, Map<DirectionType, ChemicalCell> surroundings) {
+        if (followingWall(state)) return false;
         return (state.charAt(1) == '+' && state.charAt(2) >= '1' && rightOpen(surroundings));
     }
 
@@ -264,313 +272,107 @@ public class Agent extends chemotaxis.sim.Agent {
         return (followingWall(state) || blockedInX(surroundings) || blockedInY(surroundings));
     }
     
-    /*
-    // wall UDLR ±  X [.*] ±  Y [.*] W
-    //  Y    R   +  X  *   +  Y  .   W
-    //  0    1   2  3  4   5  6  7   8 
     private char[] moveWithBlock(String prevState, Map<DirectionType, ChemicalCell> surroundings) {
-        // TODO: will this cause a problem in corners, the agent doesnt know what wall it is following 
-        //       You can make it follow past move UDLR before resorting to major axis?
-        
-        // if you previously were blocked in any axis but are now open 
-        if (followingWall(prevState) && !blockedInX(surroundings) && !blockedInY(surroundings)) {
-            // conversion back into regular state string 
-            if (getMajorAxis(prevState) == 'Y') {
-                return {'0', prevState.charAt(2), '1', '.', '0', prevState.charAt(5), '2', '*', 'C'};
-            }
-            return {'0', prevState.charAt(2), '2', '*', '0', prevState.charAt(5), '1', '.', 'C'};
-        }
-
-        // if you previously were blocked in both 
-
-        // were following a wall blocked in Y, now blocked in X somehow 
-        else if (followingWall(prevState) && prevState.charAt(0) == 'Y' && !blockedInY(surroundings)) { 
-            // take the movement from before and apply it to you now if possible
-            if (getMajorAxis(prevState) == 'Y') {
-                // try moving in that y dir
-                if (prevState.charAt(2) == '+' && prevState.charAt(5) == '+') { // +X +Y
-                    if (upOpen(surroundings)) { 
-                        return {'X', 'U', '+', 'X', '.', '+', 'Y', '*', 'W'};
+        // [±X] [±Y] [BXxYy] [UDLR] W
+        //  O    1      2      3    4 
+        // previously blocked --> W 
+        if (followingWall(prevState)) {
+            if (blockedInX(surroundings) || blockedInY(surroundings)) { // currently blocked?
+                // getOrder prioritizes different movement directions
+                // based on where you came from last 
+                simPrinter.println("Previously blocked, still blocked");
+                char[] order = getOrder(prevState);
+                for (char o : order) {
+                    if (o == 'U' && upOpen(surroundings)) {
+                        return new char[] {prevState.charAt(0), prevState.charAt(1), prevState.charAt(2),'U','W'};
                     }
-                    else if (rightOpen(surroundings)) { 
-                        return {'X', 'R', '+', 'X', '.', '+', 'Y', '*', 'W'};
+                    else if (o == 'D' && downOpen(surroundings)) {
+                        return new char[] {prevState.charAt(0), prevState.charAt(1), prevState.charAt(2),'D','W'};
                     }
-                    else {
-                        if (prevState.charAt(1) == 'L') {
-                            if (downOpen(surroundings)) { 
-                                return {'X', 'D', '+', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                            else { // going  left 
-                                return {'X', 'L', '+', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                        }
-                        else { // (prevState.charAt(1) == 'D'
-                            if (leftOpen(surroundings)) { 
-                                return {'X', 'L', '+', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                            else { // going down
-                                return {'X', 'D', '+', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                        }
+                    else if (o == 'L' && leftOpen(surroundings)) {
+                        return new char[] {prevState.charAt(0), prevState.charAt(1), prevState.charAt(2),'L','W'};
                     }
-                }
-                else if (prevState.charAt(2) == '+' && prevState.charAt(5) == '-') { // +X -Y
-                    if (downOpen(surroundings)) { 
-                        return {'X', 'D', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                    }
-                    else if (rightOpen(surroundings)) { 
-                        return {'X', 'R', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'L') {
-                            if (upOpen(surroundings)) { 
-                                return {'X', 'U', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                            else { // going  left 
-                                return {'X', 'L', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'U'
-                            if (leftOpen(surroundings)) { 
-                                return {'X', 'L', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                            else { // going up
-                                return {'X', 'U', '+', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                        }
-                    }
-                }
-                if (prevState.charAt(2) == '-' && prevState.charAt(5) == '+') { // -X +Y
-                    if (upOpen(surroundings)) { 
-                        return {'X', 'U', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                    }
-                    else if (leftOpen(surroundings)) { 
-                        return {'X', 'L', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'D') {
-                            if (rightOpen(surroundings)) { 
-                                return {'X', 'R', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                            else { // going  down 
-                                return {'X', 'D', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'R'
-                            if (downOpen(surroundings)) { 
-                                return {'X', 'D', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                            else { // going right
-                                return {'X', 'R', '-', 'X', '.', '+', 'Y', '*', 'W'};
-                            }
-                        }
-                    }
-                }
-                else { // -X -Y
-                    if (downOpen(surroundings)) { 
-                        return {'X', 'D', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                    }
-                    else if (leftOpen(surroundings)) { 
-                        return {'X', 'L', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'R') {
-                            if (upOpen(surroundings)) { 
-                                return {'X', 'U', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                            else { // going  right 
-                                return {'X', 'R', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'U'
-                            if (rightOpen(surroundings)) { 
-                                return {'X', 'R', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                            else { // going up
-                                return {'X', 'U', '-', 'X', '.', '-', 'Y', '*', 'W'};
-                            }
-                        }
+                    else if (o == 'R' && rightOpen(surroundings)) {
+                        return new char[] {prevState.charAt(0), prevState.charAt(1), prevState.charAt(2),'R','W'};
                     }
                 }
             }
-
-            else { // major movement is in X direction 
-                // try moving in that y dir
-                if (prevState.charAt(2) == '+' && prevState.charAt(5) == '+') { // +X +Y
-                    if (rightOpen(surroundings)) { 
-                        return {'X', 'R', '+', 'X', '*', '+', 'Y', '.', 'W'};
+            else { // no longer blocked?
+                // translate out of blocked notation 
+                char[] order = getOrder(prevState);
+                char[] partial = getDirection(prevState);
+                simPrinter.println("Previously blocked, no longer blocked: " + String.valueOf(order) + String.valueOf(partial));
+                for (char o : order) {
+                    if (o == 'U' && upOpen(surroundings)) {
+                        char[] ret = new char[9];
+                        simPrinter.println("U: " + String.valueOf(moveInY(ret,String.valueOf(partial))));
+                        return moveInY(ret,String.valueOf(partial));
                     }
-                    else if (upOpen(surroundings)) { 
-                        return {'X', 'U', '+', 'X', '*', '+', 'Y', '.', 'W'};
+                    else if (o == 'D' && downOpen(surroundings)) {
+                        char[] ret = new char[9];
+                        simPrinter.println("D: " + String.valueOf(moveInY(ret,String.valueOf(partial))));
+                        return moveInY(ret,String.valueOf(partial));
                     }
-                    else {
-                        if (prevState.charAt(1) == 'L') {
-                            if (downOpen(surroundings)) { 
-                                return {'X', 'D', '+', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                            else { // going  left 
-                                return {'X', 'L', '+', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                        }
-                        else { // (prevState.charAt(1) == 'D'
-                            if (leftOpen(surroundings)) { 
-                                return {'X', 'L', '+', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                            else { // going down
-                                return {'X', 'D', '+', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                        }
+                    else if (o == 'L' && leftOpen(surroundings)) {
+                        char[] ret = new char[9];
+                        simPrinter.println("L: " + String.valueOf(moveInX(ret,String.valueOf(partial))));
+                        return moveInX(ret,String.valueOf(partial));
+                    }
+                    else if (o == 'R' && rightOpen(surroundings)) {
+                        char[] ret = new char[9];
+                        simPrinter.println("R: " + String.valueOf(moveInX(ret,String.valueOf(partial))));
+                        return moveInX(ret,String.valueOf(partial));
                     }
                 }
-                else if (prevState.charAt(2) == '+' && prevState.charAt(5) == '-') { // +X -Y
-                    if (rightOpen(surroundings)) { 
-                        return {'X', 'R', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                    }
-                    else if (downOpen(surroundings)) { 
-                        return {'X', 'D', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'L') {
-                            if (upOpen(surroundings)) { 
-                                return {'X', 'U', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                            else { // going  left 
-                                return {'X', 'L', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'U'
-                            if (leftOpen(surroundings)) { 
-                                return {'X', 'L', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                            else { // going up
-                                return {'X', 'U', '+', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                        }
-                    }
+            }          
+        }
+        else { // not previously blocked --> C/R 
+            // translate to blocked notation
+            simPrinter.println("Not previously blocked, now blocked");
+            String translatedState = translateBlocked(prevState);
+            char[] order = getOrder(translatedState);
+            for (char o : order) {
+                if (o == 'U' && upOpen(surroundings)) {
+                    return new char[] {translatedState.charAt(0), translatedState.charAt(1), translatedState.charAt(2),'U','W'};
                 }
-                if (prevState.charAt(2) == '-' && prevState.charAt(5) == '+') { // -X +Y
-                    if (leftOpen(surroundings)) { 
-                        return {'X', 'L', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                    }
-                    else if (upOpen(surroundings)) { 
-                        return {'X', 'U', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'D') {
-                            if (rightOpen(surroundings)) { 
-                                return {'X', 'R', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                            else { // going  down 
-                                return {'X', 'D', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'R'
-                            if (downOpen(surroundings)) { 
-                                return {'X', 'D', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                            else { // going right
-                                return {'X', 'R', '-', 'X', '*', '+', 'Y', '.', 'W'};
-                            }
-                        }
-                    }
+                else if (o == 'D' && downOpen(surroundings)) {
+                    return new char[] {translatedState.charAt(0), translatedState.charAt(1), translatedState.charAt(2),'D','W'};
                 }
-                else { // -X -Y
-                    if (leftOpen(surroundings)) { 
-                        return {'X', 'L', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                    }
-                    else if (downOpen(surroundings)) { 
-                        return {'X', 'D', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                    }
-                    else {
-                        if (prevState.charAt(1) == 'R') {
-                            if (upOpen(surroundings)) { 
-                                return {'X', 'U', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                            else { // going  right 
-                                return {'X', 'R', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                        }
-                        else { // prevState.charAt(1) == 'U'
-                            if (rightOpen(surroundings)) { 
-                                return {'X', 'R', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                            else { // going up
-                                return {'X', 'U', '-', 'X', '*', '-', 'Y', '.', 'W'};
-                            }
-                        }
-                    }
+                else if (o == 'L' && leftOpen(surroundings)) {
+                    return new char[] {translatedState.charAt(0), translatedState.charAt(1), translatedState.charAt(2),'L','W'};
+                }
+                else if (o == 'R' && rightOpen(surroundings)) {
+                    return new char[] {translatedState.charAt(0), translatedState.charAt(1), translatedState.charAt(2),'R','W'};
                 }
             }
-        }   
-
-        // were following a wall blocked in X, now blocked in Y somehow 
-        else if (followingWall(prevState) && prevState.charAt(0) == 'X' && !blockedInX(surroundings) { 
-
         }
-
-
-        // if you were previously blocked and still are 
-            // which axis were you blocked in?
-                X -> X
-                  -> Y
-                  -> XY 
-                //   -> none
-                Y -> X
-                  -> Y
-                  -> XY
-                //   -> none
-                XY -> X
-                  -> Y
-                  -> XY 
-                //   -> none
-                None -> X
-                  -> Y
-                  -> XY
-                //   -> none 
-            // which axis are you blocked in?
-            // both
-                // turn around, follow previous wall in opposite direction
-            // new axis, but not old
-                // follow axis in preferable directoin if possible
-            // same axis
-                // continue on your way 
-        
-        // if you were not blocked before and now you are 
-        if (!followingWall(prevState) && blockedInX(surroundings)) {
-            // see if you can continue moving in your position position
-                // if not, translate to blocked language 
-                // if so, move in that direction and keep going 
-            
-
-            // try to go where you want
-            // try to go somewhere else that you want
-            // try not to go back from where you came
-            // go back from where you came 
-        }
-
-        if (!followingWall(prevState) && blockedInY(surroundings)) {
-
-        }
-
-        // if moving in perpendicular manner (regardless of your previous movements) 
-        // and not don't know which direction to move in now that you've hit something 
-            // is there a way to move that isn't where you came? 
-            // random 
-            
-
-    
-    
-        
-        return nextState;
+        return null;
     }
-    */
+    
+    private String translateBlocked(String s) {
+        char[] ret = {'+','+','.','.','W'};
+        if (s.charAt(1) == '-') ret[0] = '-';
+        if (s.charAt(5) == '-') ret[1] = '-';
+        if (s.charAt(1) == '+' && s.charAt(3) == '*') ret[3] = 'R';
+        else if (s.charAt(1) == '-' && s.charAt(3) == '*') ret[3] = 'L';
+        else if (s.charAt(5) == '+' && s.charAt(7) == '*') ret[3] = 'U';
+        else if (s.charAt(5) == '-' && s.charAt(7) == '*') ret[3] = 'D';
+        if (s.charAt(2) == '1' && s.charAt(6) == '1') ret[2] = 'B';
+        else if (s.charAt(2) == '3' && s.charAt(6) == '1') ret[2] = 'x';
+        else if (s.charAt(2) == '2' && s.charAt(6) == '1') ret[2] = 'x';
+        else if (s.charAt(2) == '1' && s.charAt(6) == '3') ret[2] = 'y';
+        else if (s.charAt(2) == '1' && s.charAt(6) == '2') ret[2] = 'y';
+        else if (s.charAt(2) == '1' && s.charAt(6) == '0') { ret[2] = 'X'; ret[1] = '.'; }
+        else if (s.charAt(2) == '0' && s.charAt(6) == '1') { ret[2] = 'Y'; ret[0] = '.'; }
+        return String.valueOf(ret);
+    }
 
     private DirectionType blockMoveDirection(char[] nextState) {
-        if (nextState[8] == 'W') {
-            if (nextState[1] == 'R') return DirectionType.SOUTH;
-            else if (nextState[1] == 'L') return DirectionType.NORTH;
-            else if (nextState[1] == 'U') return DirectionType.EAST;
-            else  return DirectionType.WEST;
+        if (nextState[4] == 'W') {
+            if (nextState[3] == 'R') return DirectionType.SOUTH;
+            else if (nextState[3] == 'L') return DirectionType.NORTH;
+            else if (nextState[3] == 'U') return DirectionType.EAST;
+            else return DirectionType.WEST;
         }
         else {
             if (nextState[3] == '*' && nextState[7] == '.') {
@@ -599,6 +401,10 @@ public class Agent extends chemotaxis.sim.Agent {
                                      '0', prevState.charAt(5), prevState.charAt(6), '.', 'C'};
             if (nextState[2] == '0' || nextState[6] == '0')
                 nextState[8] = 'R';
+            // if (nextState[2] == '0' && nextState[6] == '1') {
+            //     nextState[7] = '*';
+            //     nextState[3] = '.';
+            // }
         }
         else {
             nextState = new char[] { (char)((int) prevState.charAt(0) + 1), prevState.charAt(1), prevState.charAt(2), '*',
@@ -623,6 +429,10 @@ public class Agent extends chemotaxis.sim.Agent {
                                      '0', prevState.charAt(5), prevState.charAt(6), '*', 'C'};
             if (nextState[2] == '0' || nextState[6] == '0')
                 nextState[8] = 'R';
+            // if (nextState[2] == '1' && nextState[6] == '0') {
+            //     nextState[3] = '*';
+            //     nextState[7] = '.';
+            // }
         }
         else {
             nextState = new char[] { prevState.charAt(0), prevState.charAt(1), prevState.charAt(2), '.',
@@ -646,7 +456,7 @@ public class Agent extends chemotaxis.sim.Agent {
     }
 
     private Boolean followingWall(String state) {
-        return state.charAt(8) == 'W';
+        return state.charAt(4) == 'W';
     }
 
     private char getMajorAxis(String state) {
@@ -665,6 +475,167 @@ public class Agent extends chemotaxis.sim.Agent {
             return 'Y';
         }
     }
+
+    private char[] getDirection(String s) {
+        // [±X] [±Y] [BXxYy] [UDLR] W
+        //  O    1      2      3    4 
+        if (s.charAt(2) == 'B') { // 1 1 
+            if (s.charAt(3) == 'U' || s.charAt(3) == 'D') 
+                return new char[] {'0',s.charAt(0),'1','.','0',s.charAt(1),'1','*','C'};
+            return new char[] {'0',s.charAt(0),'1','*','0',s.charAt(1),'1','.','C'};
+        }
+        else if (s.charAt(2) == 'X') { // 1 0 
+            // if (s.charAt(3) == 'L') return new char[] {'0','-','1','*','0','+','0','.','R'};
+            // return new char[] {'0','+','1','*','0','+','0','.','R'};
+            // if went up or down, go diagonally in the prev direction
+            if (s.charAt(3) == 'U') 
+                return new char[] {'0',s.charAt(0),'1','.','0','-','1','*','C'};
+            if (s.charAt(3) == 'D') 
+                return new char[] {'0',s.charAt(0),'1','.','0','+','1','*','C'};
+            return new char[] {'0',s.charAt(0),'1','*','0','+','0','.','R'};
+        }
+        else if (s.charAt(2) == 'Y') { // 0 1 
+            // if (s.charAt(3) == 'D') return new char[] {'0','+','0','.','0','-','1','*','R'};
+            // return new char[] {'0','+','0','.','0','+','1','*','R'};
+            if (s.charAt(3) == 'R') 
+                return new char[] {'0','-','1','*','0',s.charAt(1),'1','.','C'};
+            if (s.charAt(3) == 'L') 
+                return new char[] {'0','+','1','*','0',s.charAt(1),'1','.','C'};
+            return new char[] {'0','+','0','.','0',s.charAt(1),'1','*','R'};
+        }
+        else if (s.charAt(2) == 'x') { // 3 1 
+            if (s.charAt(3) == 'U' || s.charAt(3) == 'D') 
+                return new char[] {'0',s.charAt(0),'3','.','0',s.charAt(1),'1','*','C'};
+            return new char[] {'0',s.charAt(0),'3','*','0',s.charAt(1),'1','.','C'};
+        }
+        else if (s.charAt(2) == 'y') { // 1 3 
+            if (s.charAt(3) == 'U' || s.charAt(3) == 'D') 
+                return new char[] {'0',s.charAt(0),'1','.','0',s.charAt(1),'3','*','C'};
+            return new char[] {'0',s.charAt(0),'1','*','0',s.charAt(1),'3','.','C'};
+        }
+        return null;
+    }
     
+    private char[] getOrder(String s) {
+        // [±X] [±Y] [BXxYy] [UDLR] W
+        //  O    1      2      3    4 
+        char[] ret = s.toCharArray();
+        if (s.charAt(2) == 'B') { // 1 1 
+        // if (s.charAt(2) == 'B' || s.charAt(2) == 'y' || s.charAt(2) == 'x') { // 1 1 
+            if (s.charAt(0) == '+' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','R','L','D'};
+                else if (ret[3] == 'D') return new char[] {'R','D','L','U'};
+                else if (ret[3] == 'L') return new char[] {'U','L','D','R'};
+                else if (ret[3] == 'R') return new char[] {'R','U','D','L'};
+            }
+            if (s.charAt(0) == '+' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'R','U','L','D'};
+                else if (ret[3] == 'D') return new char[] {'D','R','L','U'};
+                else if (ret[3] == 'L') return new char[] {'D','L','U','R'};
+                else if (ret[3] == 'R') return new char[] {'R','D','U','L'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','L','R','D'};
+                else if (ret[3] == 'D') return new char[] {'L','D','R','U'};
+                else if (ret[3] == 'L') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'R') return new char[] {'U','R','D','L'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'L','U','R','D'};
+                else if (ret[3] == 'D') return new char[] {'D','L','R','U'};
+                else if (ret[3] == 'L') return new char[] {'L','D','U','R'};
+                else if (ret[3] == 'R') return new char[] {'D','R','U','L'};
+            }
+        }
+        else if (s.charAt(2) == 'X') { // 1 0 
+            if (s.charAt(0) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','R','L','D'};
+                else if (ret[3] == 'D') return new char[] {'D','R','L','U'};
+                // else if (ret[3] == 'L') return new char[] {'U','L','D','R'};
+                // else if (ret[3] == 'R') return new char[] {'U','R','D','L'};
+                else if (ret[3] == 'L') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'R') return new char[] {'R','U','D','L'};
+            }
+            if (s.charAt(0) == '-') {
+                if (ret[3] == 'U') return new char[] {'U','L','R','D'};
+                else if (ret[3] == 'D') return new char[] {'D','L','R','U'};
+                // else if (ret[3] == 'L') return new char[] {'U','L','D','R'};
+                // else if (ret[3] == 'R') return new char[] {'U','R','D','L'};
+                else if (ret[3] == 'L') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'R') return new char[] {'R','U','D','L'};
+            }
+        }
+        else if (s.charAt(2) == 'Y') { // 0 1 
+            if (s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','R','L','D'};
+                else if (ret[3] == 'D') return new char[] {'D','R','L','U'};
+                // else if (ret[3] == 'L') return new char[] {'U','L','D','R'};
+                // else if (ret[3] == 'R') return new char[] {'U','R','D','L'};
+                else if (ret[3] == 'L') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'R') return new char[] {'R','U','D','L'};
+            }
+            if (s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'U','R','L','D'};
+                else if (ret[3] == 'D') return new char[] {'D','R','L','U'};
+                // else if (ret[3] == 'L') return new char[] {'L','D','U','R'};
+                // else if (ret[3] == 'R') return new char[] {'R','D','U','L'};
+                else if (ret[3] == 'L') return new char[] {'D','L','U','R'};
+                else if (ret[3] == 'R') return new char[] {'D','R','U','L'};
+            }
+        }
+        else if (s.charAt(2) == 'x') { // 3 1 
+            if (s.charAt(0) == '+' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'R','U','D','L'};
+                else if (ret[3] == 'D') return new char[] {'R','D','U','L'};
+                else if (ret[3] == 'L') return new char[] {'U','D','R','L'};
+                else if (ret[3] == 'R') return new char[] {'R','U','D','L'};
+            }
+            if (s.charAt(0) == '+' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'R','U','D','L'};
+                else if (ret[3] == 'D') return new char[] {'R','D','U','L'};
+                else if (ret[3] == 'L') return new char[] {'D','U','R','L'};
+                else if (ret[3] == 'R') return new char[] {'R','D','U','L'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'D') return new char[] {'L','D','U','R'};
+                else if (ret[3] == 'L') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'R') return new char[] {'U','D','L','R'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'L','U','D','R'};
+                else if (ret[3] == 'D') return new char[] {'L','D','U','R'};
+                else if (ret[3] == 'L') return new char[] {'L','D','U','R'};
+                else if (ret[3] == 'R') return new char[] {'D','U','L','R'};
+            }
+        }
+        else if (s.charAt(2) == 'y') { // 1 3 
+            if (s.charAt(0) == '+' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','R','L','D'};
+                else if (ret[3] == 'D') return new char[] {'L','R','U','D'};
+                else if (ret[3] == 'L') return new char[] {'U','L','R','D'};
+                else if (ret[3] == 'R') return new char[] {'U','R','L','D'};
+            }
+            if (s.charAt(0) == '+' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'R','L','D','U'};
+                else if (ret[3] == 'D') return new char[] {'D','R','L','U'};
+                else if (ret[3] == 'L') return new char[] {'D','L','R','U'};
+                else if (ret[3] == 'R') return new char[] {'D','R','L','U'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '+') {
+                if (ret[3] == 'U') return new char[] {'U','L','R','D'};
+                else if (ret[3] == 'D') return new char[] {'L','R','U','D'};
+                else if (ret[3] == 'L') return new char[] {'U','L','R','D'};
+                else if (ret[3] == 'R') return new char[] {'U','R','L','D'};
+            }
+            if (s.charAt(0) == '-' && s.charAt(1) == '-') {
+                if (ret[3] == 'U') return new char[] {'L','R','D','U'};
+                else if (ret[3] == 'D') return new char[] {'D','L','R','U'};
+                else if (ret[3] == 'L') return new char[] {'D','L','R','U'};
+                else if (ret[3] == 'R') return new char[] {'D','R','L','U'};
+            }
+        }
+        return null;
+    }
 
 }
