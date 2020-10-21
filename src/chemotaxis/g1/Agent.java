@@ -9,7 +9,7 @@ import chemotaxis.sim.Move;
 import chemotaxis.sim.SimPrinter;
 
 public class Agent extends chemotaxis.sim.Agent {
-
+    private SimPrinter sp;
     /**
      * Agent constructor
      *
@@ -18,6 +18,7 @@ public class Agent extends chemotaxis.sim.Agent {
      */
     public Agent(SimPrinter simPrinter) {
         super(simPrinter);
+        sp = simPrinter;
     }
 
     /**
@@ -34,6 +35,7 @@ public class Agent extends chemotaxis.sim.Agent {
     public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
         Move agentMove = new Move();
         DirectionType dir = getBlueDirection(neighborMap, 0.99);
+        sp.println(dir.toString());
         if(dir != DirectionType.CURRENT) {
             agentMove.currentState = getDirectionByte(dir);
             agentMove.directionType = dir;
@@ -48,6 +50,17 @@ public class Agent extends chemotaxis.sim.Agent {
     private DirectionType getBlueDirection(Map<DirectionType, ChemicalCell> neighborMap, Double blueThreshold) {
         Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = getConcentrations(neighborMap);
         DirectionType absoluteBlue = DirectionType.CURRENT;
+
+        for(DirectionType dir : concentrationMap.keySet()) {
+            if(concentrationMap.get(dir).get(ChemicalCell.ChemicalType.BLUE) >= blueThreshold) absoluteBlue = dir;
+        }
+
+        return absoluteBlue;
+    }
+
+    private DirectionType getRedDirection(Map<DirectionType, ChemicalCell> neighborMap, Double blueThreshold) {
+        Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = getConcentrations(neighborMap);
+        DirectionType absoluteRed = DirectionType.CURRENT;
 
         for(DirectionType dir : concentrationMap.keySet()) {
             if(concentrationMap.get(dir).get(ChemicalCell.ChemicalType.BLUE) >= blueThreshold) absoluteBlue = dir;
@@ -73,6 +86,30 @@ public class Agent extends chemotaxis.sim.Agent {
 
     private DirectionType getDirectionFromByte(Byte b) {
         switch (b) {
+            // 12 S -> W
+            // 11 S -> W
+            // 10 N -> E
+            // 9 N -> W
+            // 8 E -> N
+            // 7 W -> S
+            // 6 E -> N
+            // 5 W -> N
+            case (byte) 12:
+                return DirectionType.SOUTH;
+            case (byte) 11:
+                return DirectionType.SOUTH;
+            case (byte) 10:
+                return DirectionType.NORTH;
+            case (byte) 9:
+                return DirectionType.NORTH;
+            case (byte) 8:
+                return DirectionType.EAST;
+            case (byte) 7:
+                return DirectionType.WEST;                
+            case (byte) 6:
+                return DirectionType.EAST;
+            case (byte) 5:
+                return DirectionType.WEST;
             case (byte) 4:
                 return DirectionType.SOUTH;
             case (byte) 3:
@@ -88,11 +125,11 @@ public class Agent extends chemotaxis.sim.Agent {
 
     private Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> getConcentrations(Map<DirectionType, ChemicalCell> neighborMap) {
         Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = new HashMap<>();
-
+        sp.println(neighborMap.keySet().toString());
         for(DirectionType dir : neighborMap.keySet()) {
             concentrationMap.put(dir, neighborMap.get(dir).getConcentrations());
         }
-
+        System.out.println(concentrationMap.toString());
         return concentrationMap;
     }
 }
