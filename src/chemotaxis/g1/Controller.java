@@ -81,7 +81,8 @@ public class Controller extends chemotaxis.sim.Controller {
         // This checks if current cell can get to the end with the number of chemicals currently.
         // If so, then we start directing it to the end.
         if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.size()
-                && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)) {
+                && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)
+                && getTurns(this.myAllKPaths.get(currentLocation)).size() <= chemicalsRemaining) {
             this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
             this.onPathToTarget = true;
         }
@@ -94,12 +95,14 @@ public class Controller extends chemotaxis.sim.Controller {
                 //turnSignals.remove(0);
             }
         }
-        else if(!myTurnPath.isEmpty() && chemicalsRemaining < this.myTurnPath.size() && !this.onPathToTarget) {
+        else if(!myTurnPath.isEmpty() && chemicalsRemaining < this.myTurnPath.size() && !this.onPathToTarget
+                && chemicalsRemaining > 2*this.myTurnPath.size()/3) {
             this.myTurnPath = removeCornerTurns(myTurnPath, grid, chemicalsRemaining);
             if (closeToTurn(currentLocation, this.myTurnPath)) {
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = this.myTurnPath.get(0);
                 this.myTurnPath.remove(0);
+                this.onPathToTarget = true;
                 //turnSignals.remove(0);
             }
         }
@@ -188,12 +191,6 @@ public class Controller extends chemotaxis.sim.Controller {
                     }
                 }
             }
-//            if (p1.size() == p2.size()) {
-//                for (int i = 0; i < p1.size(); i++) {
-//                    if (p1.get(i).x != p2.get(i).x || p1.get(i).y != p2.get(i).y)
-//                        return false;
-//                }
-//            }
         }
         return true;
     }

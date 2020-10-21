@@ -39,9 +39,26 @@ public class Agent extends chemotaxis.sim.Agent {
             Map<DirectionType, ChemicalCell> neighborMap) {
         Move agentMove = new Move();
         DirectionType dir = getBlueDirection(neighborMap, 0.99);
+
         if (dir != DirectionType.CURRENT) {
             agentMove.currentState = getDirectionByte(dir);
             agentMove.directionType = dir;
+        } else if (previousState.equals((byte) 0)) {
+            if (dir == DirectionType.CURRENT) {
+                Byte stateVal = (byte) ((int) Math.abs(randomNum % 15) + 1);
+                agentMove.currentState = stateVal;
+                agentMove.directionType = getDirectionFromByte(stateVal);
+                agentMove.currentState = (byte) 99;
+                return agentMove;
+            }
+        } else if (previousState.equals((byte) 99)) {
+            if (dir == DirectionType.CURRENT) {
+                Byte stateVal = (byte) ((int) Math.abs(randomNum % 15) + 1);
+                agentMove.currentState = stateVal;
+                agentMove.directionType = getDirectionFromByte(stateVal);
+                agentMove.currentState = (byte) 99;
+                return agentMove;
+            }
         } else if(neighborMap.get(getDirectionFromByte(previousState)).isBlocked()) {
             agentMove.directionType = getRandomDirection(getDirectionFromByte(previousState), randomNum);
         } else {
