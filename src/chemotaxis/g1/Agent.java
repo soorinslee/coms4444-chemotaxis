@@ -39,7 +39,8 @@ public class Agent extends chemotaxis.sim.Agent {
             Map<DirectionType, ChemicalCell> neighborMap) {
         Move agentMove = new Move();
         DirectionType dir = getBlueDirection(neighborMap, 0.99);
-        DirectionType[] dir2 = getRedDirection(neighborMap, 0.19);
+        DirectionType[] dir2 = getRedDirection(neighborMap, 0.2);
+        System.out.println(dir.toString() + " " + Arrays.toString(dir2));
         if (dir != DirectionType.CURRENT) {
             agentMove.currentState = getDirectionByte(dir);
             agentMove.directionType = dir;
@@ -86,7 +87,7 @@ public class Agent extends chemotaxis.sim.Agent {
         DirectionType[] absoluteRed = { DirectionType.CURRENT, DirectionType.CURRENT };
 
         for (DirectionType dir : concentrationMap.keySet()) {
-            if (concentrationMap.get(dir).get(ChemicalCell.ChemicalType.RED) >= redThreshold) {
+            if (concentrationMap.get(dir).get(ChemicalCell.ChemicalType.RED) >= redThreshold && concentrationMap.get(dir).get(ChemicalCell.ChemicalType.RED) <= redThreshold+0.1 ) {
                 if (absoluteRed[0].equals(DirectionType.CURRENT)) {
                     absoluteRed[0] = dir;
                 } else if (absoluteRed[1].equals(DirectionType.CURRENT)) {
