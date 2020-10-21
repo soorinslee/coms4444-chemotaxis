@@ -148,7 +148,7 @@ public class Simulator {
 			}
 
 			try {
-				mapSize = Integer.parseInt(scanner.nextLine().trim());
+				mapSize = Integer.parseInt(scanner.nextLine().strip());
 				grid = new ChemicalCell[mapSize][mapSize];
 				for(int i = 0; i < grid.length; i++)
 					for(int j = 0; j < grid[0].length; j++)
@@ -159,7 +159,7 @@ public class Simulator {
 			}
 
 			try {
-				String[] startAndTargetElements = scanner.nextLine().trim().split(" ");
+				String[] startAndTargetElements = scanner.nextLine().strip().split(" ");
 				int startX = Integer.parseInt(startAndTargetElements[0]);
 				int startY = Integer.parseInt(startAndTargetElements[1]);
 				int targetX = Integer.parseInt(startAndTargetElements[2]);
@@ -174,7 +174,7 @@ public class Simulator {
 
 			try {
 				while(scanner.hasNextLine()) {
-					String[] blockedLocationElements = scanner.nextLine().trim().split(" ");
+					String[] blockedLocationElements = scanner.nextLine().strip().split(" ");
 					int blockedX = Integer.parseInt(blockedLocationElements[0]);
 					int blockedY = Integer.parseInt(blockedLocationElements[1]);
 					blockedLocations.add(new Point(blockedX, blockedY));
