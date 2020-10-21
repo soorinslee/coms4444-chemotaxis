@@ -63,8 +63,60 @@ public class Controller extends chemotaxis.sim.Controller {
             this.myAllKPaths = getAllPathsFromTarget(grid, this.totalChemicals);
             this.myPath = getOptimalPath(this.start, grid, this.myAllKPaths, totalChemicals, true);
             this.myTurnPath = getTurns(this.myPath);
+            // Point red_test = myTurnPath.get(0);
+            // System.out.println(red_test.x + " " + red_test.y);
+            // red_test.x = 16;
+            // red_test.y = 41;
+            // myTurnPath.set(0, red_test);
+            // this.turnSignals.add(ChemicalType.RED);
+            int diagEnd = 0;
+            int diagStart = -1;
+            boolean endedDiagonal = false;
+            int k = 0;
+            int diagX = 0;
+            int diagY = 0;
+            Point secondToLast;
+            while (k < this.myTurnPath.size()) {
+                if (this.myTurnPath.size() > 1) {
+                    if (isDiagonalPath(k)) {
+                        if (diagStart == -1) {
+                            diagStart = k;
+                        }
+                        diagEnd++;
+                        diagX = this.myTurnPath.get(diagStart + 1).x;
+                        diagY = this.myTurnPath.get(diagStart + 1).y;
+                    } else {
+                        diagEnd = k;
+                        if (diagStart > -1) {
+                            break;
+                        }
+                    }
+                }
+                k++;
+            }
+            if (diagStart == -1) {
+                diagStart = 0;
+            }
+            if (diagEnd > 0) {
+                System.out.println("DIAG ENDD " + diagEnd);
+            }
+            if (diagEnd - diagStart < 2) {
+                diagEnd = 0;
+                diagStart = 0;
+            }
+            for (int j = diagStart; j < diagEnd - 1; j++) {
+                this.myTurnPath.remove(diagStart);
+            }
+
+            for (int i = 0; i < myTurnPath.size(); i++) {
+                if (i == myTurnPath.size() - 1 && diagEnd != 0) {
+                    this.myTurnPath.set(diagStart, new Point(diagX, diagY));
+                    this.turnSignals.add(diagStart, ChemicalType.RED);
+                    break;
+                }
+                this.turnSignals.add(ChemicalType.BLUE);
+            }
             //System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" + this.allKPaths.keySet());
-            System.out.println(this.myAllKPaths.keySet().contains(start));
             //System.out.println("TURNS: \n"+myTurnPath + "\n \n");
             //Point red_test = myTurnPath.get(0);
             //System.out.println(red_test.x + " " + red_test.y);
@@ -75,11 +127,11 @@ public class Controller extends chemotaxis.sim.Controller {
             //for (int i = 0; i < myTurnPath.size() - 1; i++) {
             //    this.turnSignals.add(ChemicalType.BLUE);
             //}
+
             // System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" +
             // this.allKPaths.keySet());
             // System.out.println(this.allKPaths.keySet().contains(start));
             //System.out.println("TURNS: \n" + this.myTurnPath + "\n \n");
-            this.myTurnPath.remove(1);
         }
 
 //         if(!isPathsEquivalent(this.myTurnPath, getTurns(getOptimalPath(currentLocation, grid,
@@ -110,7 +162,7 @@ public class Controller extends chemotaxis.sim.Controller {
         List<ChemicalType> chemicals = new ArrayList<>();
         chemicals.add(turnSignals.get(0));
 
-        // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
+         // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
         // This checks if current cell can get to the end with the number of chemicals currently.
         // If so, then we start directing it to the end.
         if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.size()
@@ -118,11 +170,13 @@ public class Controller extends chemotaxis.sim.Controller {
             this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
             this.onPathToTarget = true;
         }
-
-        // If there are enough chemicals to direct to the end or are currently on path
-        if (!myTurnPath.isEmpty() && (this.totalChemicals >= this.myTurnPath.size() || this.onPathToTarget)
-                && chemicalsRemaining > 0) {
-            if (closeToTurn(currentLocation, myTurnPath)){
+        if (!myTurnPath.isEmpty() && chemicalsRemaining != 0) {
+            if (turnSignals.get(0).equals(ChemicalType.RED)) {
+                chemicalPlacement.chemicals = chemicals;
+                chemicalPlacement.location = myTurnPath.get(0);
+                myTurnPath.remove(0);
+                turnSignals.remove(0);
+            } else if (closeToTurn(currentLocation, myTurnPath)) {
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
                 this.myTurnPath.remove(0);
@@ -133,6 +187,20 @@ public class Controller extends chemotaxis.sim.Controller {
         return chemicalPlacement;
     }
 
+    private Boolean isDiagonalPath(int k) {
+        if (k + 1 < myTurnPath.size()) {
+            if (myTurnPath.get(k).x == myTurnPath.get(k + 1).x || myTurnPath.get(k).y == myTurnPath.get(k + 1).y) {
+                if (Math.abs(myTurnPath.get(k).x - myTurnPath.get(k + 1).x) == 1.0
+                        || Math.abs(myTurnPath.get(k).y - myTurnPath.get(k + 1).y) == 1.0) {
+                    System.out.println("TRUE");
+                    return true;
+                }
+            }
+            System.out.println("FALSE");
+        }
+        return false;
+    }
+
     private Boolean closeToTurn(Point cur, List<Point> turnPath) {
         if (this.turnSignals.get(0) == ChemicalType.BLUE) {
             for (Point point : turnPath) {
@@ -141,7 +209,7 @@ public class Controller extends chemotaxis.sim.Controller {
                 else if (point.y == cur.y && Math.abs(point.x - cur.x) == 1)
                     return true;
             }
-        } else if(this.turnSignals.get(0) == ChemicalType.RED){
+        } else if (this.turnSignals.get(0) == ChemicalType.RED) {
             for (Point point : turnPath) {
                 if (Math.abs(point.x - cur.x) == 1 && Math.abs(point.y - cur.y) == 1)
                     return true;
