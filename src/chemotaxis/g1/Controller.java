@@ -16,6 +16,7 @@ public class Controller extends chemotaxis.sim.Controller {
     private List<Point> myTurnPath;
     private List<ChemicalCell.ChemicalType> turnSignals;
     private Map<Point, List<Point>> myAllKPaths;
+    private boolean onPathToTarget;
 
     /**
      * Controller constructor
@@ -37,7 +38,11 @@ public class Controller extends chemotaxis.sim.Controller {
         this.myTurnPath = new ArrayList<>();
         this.myPath = new ArrayList<>();
         this.myAllKPaths = new HashMap<>();
+
+        this.onPathToTarget = false;
+
         this.turnSignals = new ArrayList<>();
+
     }
 
     /**
@@ -75,6 +80,7 @@ public class Controller extends chemotaxis.sim.Controller {
             // System.out.println(this.allKPaths.keySet().contains(start));
             System.out.println("TURNS: \n" + myPath + "\n \n");
         }
+
          if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid,
                  this.myAllKPaths, chemicalsRemaining))) {
              System.out.println("Paths unequal\n");
@@ -89,8 +95,19 @@ public class Controller extends chemotaxis.sim.Controller {
         List<ChemicalType> chemicals = new ArrayList<>();
         chemicals.add(turnSignals.get(0));
 
-        if (!myTurnPath.isEmpty() && chemicalsRemaining != 0) {
-            if (closeToTurn(currentLocation, myTurnPath)) {
+        // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
+        // This checks if current cell can get to the end with the number of chemicals currently.
+        // If so, then we start directing it to the end.
+        if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.size()
+                && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)) {
+            this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
+            this.onPathToTarget = true;
+        }
+
+        // If there are enough chemicals to direct to the end or are currently on path
+        if (!myTurnPath.isEmpty() && (this.totalChemicals >= this.myTurnPath.size() || this.onPathToTarget)
+                && chemicalsRemaining > 0) {
+            if(closeToTurn(currentLocation, myTurnPath)){
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
                 myTurnPath.remove(0);
@@ -406,7 +423,7 @@ public class Controller extends chemotaxis.sim.Controller {
                     path.add(new Point(cur.x, cur.y));
                     cur = cur.prev;
                 }
-                Collections.reverse(path);
+                path.remove(0);
                 allPaths.put(curPoint, path);
                 cur = temp;
             }
