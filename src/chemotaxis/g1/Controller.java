@@ -78,15 +78,15 @@ public class Controller extends chemotaxis.sim.Controller {
         // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
         // This checks if current cell can get to the end with the number of chemicals currently.
         // If so, then we start directing it to the end.
-        if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.length
+        if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.size()
                 && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)) {
             this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
             this.onPathToTarget = true;
         }
 
-        // If there are enough chemicals to direct to the end
-        else if (!myTurnPath.isEmpty() && this.totalChemicals >= this.myTurnPath.length
-                && chemicalsRemaining != 0) {
+        // If there are enough chemicals to direct to the end or are currently on path
+        if (!myTurnPath.isEmpty() && (this.totalChemicals >= this.myTurnPath.size() || this.onPathToTarget)
+                && chemicalsRemaining > 0) {
             if(closeToTurn(currentLocation, myTurnPath)){
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
@@ -364,7 +364,7 @@ public class Controller extends chemotaxis.sim.Controller {
                     path.add(new Point(cur.x, cur.y));
                     cur = cur.prev;
                 }
-                Collections.reverse(path);
+                path.remove(0);
                 allPaths.put(curPoint, path);
                 cur = temp;
             }
