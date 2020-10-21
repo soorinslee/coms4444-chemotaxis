@@ -16,6 +16,7 @@ import chemotaxis.sim.ChemicalPlacement;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.ChemicalCell.ChemicalType;
 import chemotaxis.sim.SimPrinter;
+import chemotaxis.sim.Timer;
 
 
 public class Controller extends chemotaxis.sim.Controller {
@@ -34,6 +35,8 @@ public class Controller extends chemotaxis.sim.Controller {
 	private int counter = 0;
 
 	private ArrayList<DirectionChange> directionChanges;
+
+	boolean previouslyTimedOut = false;
 
    /**
     * Controller constructor
@@ -72,7 +75,22 @@ public class Controller extends chemotaxis.sim.Controller {
 		//find path in 1st round OR when no valid path was found previously
 		if (currentTurn == 1 || bestPath[this.targetX][this.targetY].getParent() == null) {
 			//System.out.println("calculating path...");
-			findPath(currentTurn, chemicalsRemaining, currentLocation, grid);
+
+			Timer timer = new Timer();
+
+			int timeout = 950;
+
+			try {
+				if(!timer.isAlive())
+					timer.start();
+				timer.callStart(() -> {return findPath(currentTurn, chemicalsRemaining, currentLocation, grid, !this.previouslyTimedOut);});
+				timer.callWait(timeout);
+			}
+			catch(Exception e) {
+				System.out.println(currentTurn + " TIMED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				this.previouslyTimedOut = true;
+			}
+
 		}
 
 		if (bestPath[this.targetX][this.targetY].getParent() != null) {
@@ -142,7 +160,7 @@ public class Controller extends chemotaxis.sim.Controller {
    }
 
 
-   private void findPath(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid){
+   private int findPath(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid, boolean searchDiagonals){
 		this.bestPath = new Node[this.size][this.size];
 
 		for (int i = 0; i < this.size; i++) {
@@ -320,319 +338,322 @@ public class Controller extends chemotaxis.sim.Controller {
 				}
 			}
 
-			// Search path NE going north
-			if (currentNode.getX() > 0) {
-				if (grid[currentNode.getX() - 1][currentNode.getY()].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
+			if (searchDiagonals) {
+					// Search path NE going north
+				if (currentNode.getX() > 0) {
+					if (grid[currentNode.getX() - 1][currentNode.getY()].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
 
-					if (currentNode.getDirection() != Direction.NE || currentNode.getNextDirection() != Direction.NORTH) {
-						newTurns += 1;
-					}
+						if (currentNode.getDirection() != Direction.NE || currentNode.getNextDirection() != Direction.NORTH) {
+							newTurns += 1;
+						}
 
-					Node newPath = new Node(currentNode, currentNode.getX() - 1, currentNode.getY(), Direction.NE, Direction.EAST, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+						Node newPath = new Node(currentNode, currentNode.getX() - 1, currentNode.getY(), Direction.NE, Direction.EAST, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
 
 
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
 
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
 							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
 						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
+					}
+				}
+
+
+				// Search path NE going east
+				if (currentNode.getY() < size - 1 && currentNode.getDirection() == Direction.NE) {
+					if (grid[currentNode.getX()][currentNode.getY() + 1].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.NE || currentNode.getNextDirection() != Direction.EAST) {
+							newTurns += 1;
 						}
 
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() + 1, Direction.NE, Direction.NORTH, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path SE going south
+				if (currentNode.getX() < size - 1) {
+					if (grid[currentNode.getX() + 1][currentNode.getY()].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.SE || currentNode.getNextDirection() != Direction.SOUTH) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX() + 1, currentNode.getY(), Direction.SE, Direction.EAST, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path SE going east
+				if (currentNode.getY() < size - 1 && currentNode.getDirection() == Direction.SE) {
+					if (grid[currentNode.getX()][currentNode.getY() + 1].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.SE || currentNode.getNextDirection() != Direction.EAST) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() + 1, Direction.SE, Direction.SOUTH, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path NW going north
+				if (currentNode.getX() > 0) {
+					if (grid[currentNode.getX() - 1][currentNode.getY()].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.NW || currentNode.getNextDirection() != Direction.NORTH) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX() - 1, currentNode.getY(), Direction.NW, Direction.WEST, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path NW going west
+				if (currentNode.getY() > 0 && currentNode.getDirection() == Direction.NW) {
+					if (grid[currentNode.getX()][currentNode.getY() - 1].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.NW || currentNode.getNextDirection() != Direction.WEST) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() - 1, Direction.NW, Direction.NORTH, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path SW going south
+				if (currentNode.getX() < size - 1) {
+					if (grid[currentNode.getX() + 1][currentNode.getY()].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.SW || currentNode.getNextDirection() != Direction.SOUTH) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX() + 1, currentNode.getY(), Direction.SW, Direction.WEST, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
+					}
+				}
+
+
+				// Search path SW going west
+				if (currentNode.getY() > 0 && currentNode.getDirection() == Direction.SW) {
+					if (grid[currentNode.getX()][currentNode.getY() - 1].isOpen()) {
+						
+						int newTurns = currentNode.getTurns();
+
+						if (currentNode.getDirection() != Direction.SW || currentNode.getNextDirection() != Direction.WEST) {
+							newTurns += 1;
+						}
+
+						Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() - 1, Direction.SW, Direction.SOUTH, newTurns);
+						if (newPath.getTurns() <= chemicalsRemaining) {
+							newTurns = newPath.getTurns();
+							int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
+							int newLength = newPath.getLength();
+							int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
+
+
+							if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+
+								if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
+									pathFound = true;
+								}
+							}
+							else if (newTurns > oldTurns && newLength < oldLength) {
+								frontier.add(newPath);
+								bestPath[newPath.getX()][newPath.getY()] = newPath;
+							}
+							else if (newTurns < oldTurns && newLength > oldLength) {
+								frontier.add(newPath);
+							}
+
+						}
 					}
 				}
 			}
-
-
-			// Search path NE going east
-			if (currentNode.getY() < size - 1 && currentNode.getDirection() == Direction.NE) {
-				if (grid[currentNode.getX()][currentNode.getY() + 1].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.NE || currentNode.getNextDirection() != Direction.EAST) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() + 1, Direction.NE, Direction.NORTH, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path SE going south
-			if (currentNode.getX() < size - 1) {
-				if (grid[currentNode.getX() + 1][currentNode.getY()].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.SE || currentNode.getNextDirection() != Direction.SOUTH) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX() + 1, currentNode.getY(), Direction.SE, Direction.EAST, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path SE going east
-			if (currentNode.getY() < size - 1 && currentNode.getDirection() == Direction.SE) {
-				if (grid[currentNode.getX()][currentNode.getY() + 1].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.SE || currentNode.getNextDirection() != Direction.EAST) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() + 1, Direction.SE, Direction.SOUTH, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path NW going north
-			if (currentNode.getX() > 0) {
-				if (grid[currentNode.getX() - 1][currentNode.getY()].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.NW || currentNode.getNextDirection() != Direction.NORTH) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX() - 1, currentNode.getY(), Direction.NW, Direction.WEST, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path NW going west
-			if (currentNode.getY() > 0 && currentNode.getDirection() == Direction.NW) {
-				if (grid[currentNode.getX()][currentNode.getY() - 1].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.NW || currentNode.getNextDirection() != Direction.WEST) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() - 1, Direction.NW, Direction.NORTH, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path SW going south
-			if (currentNode.getX() < size - 1) {
-				if (grid[currentNode.getX() + 1][currentNode.getY()].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.SW || currentNode.getNextDirection() != Direction.SOUTH) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX() + 1, currentNode.getY(), Direction.SW, Direction.WEST, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
-
-			// Search path SW going west
-			if (currentNode.getY() > 0 && currentNode.getDirection() == Direction.SW) {
-				if (grid[currentNode.getX()][currentNode.getY() - 1].isOpen()) {
-					
-					int newTurns = currentNode.getTurns();
-
-					if (currentNode.getDirection() != Direction.SW || currentNode.getNextDirection() != Direction.WEST) {
-						newTurns += 1;
-					}
-
-					Node newPath = new Node(currentNode, currentNode.getX(), currentNode.getY() - 1, Direction.SW, Direction.SOUTH, newTurns);
-					if (newPath.getTurns() <= chemicalsRemaining) {
-						newTurns = newPath.getTurns();
-						int oldTurns = bestPath[newPath.getX()][newPath.getY()].getTurns();
-						int newLength = newPath.getLength();
-						int oldLength = bestPath[newPath.getX()][newPath.getY()].getLength();
-
-
-						if ((newTurns <= oldTurns && newLength <= oldLength) || ((newTurns <= oldTurns && newLength < oldLength))) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-
-							if (this.targetX == newPath.getX() && this.targetY == newPath.getY()) {
-								pathFound = true;
-							}
-						}
-						else if (newTurns > oldTurns && newLength < oldLength) {
-							frontier.add(newPath);
-							bestPath[newPath.getX()][newPath.getY()] = newPath;
-						}
-						else if (newTurns < oldTurns && newLength > oldLength) {
-							frontier.add(newPath);
-						}
-
-					}
-				}
-			}
-
 
 			
+
+
 			
 			
 		}
@@ -661,6 +682,8 @@ public class Controller extends chemotaxis.sim.Controller {
 
 			// }
 		}
+
+		return 1;
 
    }
 
@@ -753,7 +776,7 @@ class Node implements Comparable<Node> {
 			return this.length - other.getLength();
 		}
 		return this.turns - other.getTurns();	
-    }
+	}
 
 	public int getX() {
 		return this.x;
