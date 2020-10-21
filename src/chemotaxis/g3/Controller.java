@@ -71,6 +71,18 @@ public class Controller extends chemotaxis.sim.Controller {
             // PathFinder.triPath(path);
         }
 
+        // if not a lot of chemicals left, put blue and green on current location
+        if (budget < 4) {
+            ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+            List<ChemicalType> chemicals = new ArrayList<>();
+
+            chemicals.add(ChemicalType.BLUE);
+            chemicals.add(ChemicalType.GREEN);
+            chemicalPlacement.location = new Point(currentLocation.getX(), currentLocation.getY());
+
+            return chemicalPlacement;
+        }
+
         // cell's current location
         int currentX = currentLocation.x;
         int currentY = currentLocation.y;
