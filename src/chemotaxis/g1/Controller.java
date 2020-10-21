@@ -82,8 +82,9 @@ public class Controller extends chemotaxis.sim.Controller {
                         diagY = this.myTurnPath.get(diagStart + 1).y;
                     } else {
                         diagEnd = k;
+                        if (diagStart > -1) {
                             break;
-                        
+                        }
                     }
                 }
                 k++;

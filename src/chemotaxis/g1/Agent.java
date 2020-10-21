@@ -41,7 +41,13 @@ public class Agent extends chemotaxis.sim.Agent {
         DirectionType dir = getBlueDirection(neighborMap, 0.99);
         DirectionType[] dir2 = getRedDirection(neighborMap, 0.2);
         System.out.println(dir.toString() + " " + Arrays.toString(dir2));
-        if (dir != DirectionType.CURRENT) {
+        System.out.println("RANDOM " + randomNum);
+        if( dir == DirectionType.CURRENT && dir2[0] == dir2[1] && dir2[1] == DirectionType.CURRENT){
+            Byte stateVal = (byte)((int)Math.abs(randomNum%15) + 1);
+            agentMove.currentState = stateVal;
+            agentMove.directionType = getDirectionFromByte(stateVal);
+            return agentMove;
+        } else if (dir != DirectionType.CURRENT) {
             agentMove.currentState = getDirectionByte(dir);
             agentMove.directionType = dir;
         } else {
