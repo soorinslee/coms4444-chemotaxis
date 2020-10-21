@@ -16,7 +16,6 @@ public class Controller extends chemotaxis.sim.Controller {
     private List<Point> myTurnPath;
     private List<ChemicalCell.ChemicalType> turnSignals;
     private Map<Point, List<Point>> myAllKPaths;
-    private boolean onPathToTarget;
 
     /**
      * Controller constructor
@@ -38,11 +37,7 @@ public class Controller extends chemotaxis.sim.Controller {
         this.myTurnPath = new ArrayList<>();
         this.myPath = new ArrayList<>();
         this.myAllKPaths = new HashMap<>();
-
-        this.onPathToTarget = false;
-
         this.turnSignals = new ArrayList<>();
-
     }
 
     /**
@@ -66,52 +61,43 @@ public class Controller extends chemotaxis.sim.Controller {
             //System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" + this.allKPaths.keySet());
             System.out.println(this.myAllKPaths.keySet().contains(start));
             //System.out.println("TURNS: \n"+myTurnPath + "\n \n");
-            //Point red_test = myTurnPath.get(0);
-            //System.out.println(red_test.x + " " + red_test.y);
-            //red_test.x = 16;
-            //red_test.y = 41;
-            //myTurnPath.set(0, red_test);
-            this.turnSignals.add(ChemicalType.BLUE);
-            //for (int i = 0; i < myTurnPath.size() - 1; i++) {
-            //    this.turnSignals.add(ChemicalType.BLUE);
-            //}
+            Point red_test = myTurnPath.get(0);
+            System.out.println(red_test.x + " " + red_test.y);
+            red_test.x = 16;
+            red_test.y = 41;
+            myTurnPath.set(0, red_test);
+            this.turnSignals.add(ChemicalType.RED);
+            for (int i = 0; i < myTurnPath.size() - 1; i++) {
+                this.turnSignals.add(ChemicalType.BLUE);
+            }
             // System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" +
             // this.allKPaths.keySet());
             // System.out.println(this.allKPaths.keySet().contains(start));
-            //System.out.println("TURNS: \n" + myTurnPath + "\n \n");
+            System.out.println("TURNS: \n" + myTurnPath + "\n \n");
         }
-
-//        if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining))) {
-//            System.out.println("Paths unequal\n");
-//            System.out.println(this.myPath + "\n");
-//            System.out.println(getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining) + "\n");
-//            this.myAllKPaths = getAllPathsFromTarget(grid, chemicalsRemaining);
-//            this.myPath = getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining);
-//            this.myTurnPath = getTurns(this.myPath);
-//        }
+        // if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid,
+        // this.myAllKPaths, chemicalsRemaining))) {
+        // System.out.println("Paths unequal\n");
+        // System.out.println(this.myPath + "\n");
+        // System.out.println(getOptimalPath(currentLocation, grid, this.myAllKPaths,
+        // chemicalsRemaining) + "\n");
+        // this.myAllKPaths = getAllPathsFromTarget(grid, chemicalsRemaining);
+        // this.myPath = getOptimalPath(currentLocation, grid, this.myAllKPaths,
+        // chemicalsRemaining);
+        // this.myTurnPath = getTurns(this.myPath);
+        // }
 
         ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
 
         List<ChemicalType> chemicals = new ArrayList<>();
         chemicals.add(turnSignals.get(0));
 
-        // If not enough chemicals to direct to the end, we assume that the agent is randomly roaming.
-        // This checks if current cell can get to the end with the number of chemicals currently.
-        // If so, then we start directing it to the end.
-        if (!this.myTurnPath.isEmpty() && this.totalChemicals < this.myTurnPath.size()
-                && !this.onPathToTarget && this.myAllKPaths.keySet().contains(currentLocation)) {
-            this.myTurnPath = getTurns(this.myAllKPaths.get(currentLocation));
-            this.onPathToTarget = true;
-        }
-
-        // If there are enough chemicals to direct to the end or are currently on path
-        if (!myTurnPath.isEmpty() && (this.totalChemicals >= this.myTurnPath.size() || this.onPathToTarget)
-                && chemicalsRemaining > 0) {
-            if(closeToTurn(currentLocation, myTurnPath)){
+        if (!myTurnPath.isEmpty() && chemicalsRemaining != 0) {
+            if (closeToTurn(currentLocation, myTurnPath)) {
                 chemicalPlacement.chemicals = chemicals;
                 chemicalPlacement.location = myTurnPath.get(0);
                 myTurnPath.remove(0);
-                //turnSignals.remove(0);
+                turnSignals.remove(0);
             }
         }
 
@@ -307,8 +293,7 @@ public class Controller extends chemotaxis.sim.Controller {
             if (!visited[cur.x - 1][cur.y - 1]) {
                 List<Node> neighbors = getNeighbors(cur, grid, true);
                 for (Node neighbor : neighbors) {
-                    if((neighbor.x != this.start.x || neighbor.y != this.start.y) && !startNeighbors.contains(neighbor))
-                        queue.add(neighbor);
+                    if((neighbor.x != this.start.x || neighbor.y != this.start.y) && !startNeighbors.contains(neighbor)) queue.add(neighbor);
                 }
                 visited[cur.x - 1][cur.y - 1] = true;
             }
@@ -397,20 +382,19 @@ public class Controller extends chemotaxis.sim.Controller {
         Node start = new Node((int) this.target.getX(), (int) this.target.getY(), 0, "");
         queue.add(start);
         Map<Point, List<Point>> allPaths = new HashMap<Point, List<Point>>();
-        int curNumCells = 0;
 
         while (!queue.isEmpty()) {
             Node cur = queue.poll();
             Point curPoint = new Point(cur.x, cur.y);
 
-            if (cur.turns > 0 && cur.turns <= turns && !allPaths.containsKey(curPoint)) {
+            if (cur.turns <= turns && !allPaths.containsKey(curPoint)) {
                 List<Point> path = new ArrayList<Point>();
                 Node temp = cur;
                 while (cur != null) {
-                    path.add(new Point(cur.x, cur.y));
+                    path.add(curPoint);
                     cur = cur.prev;
                 }
-                path.remove(0);
+                Collections.reverse(path);
                 allPaths.put(curPoint, path);
                 cur = temp;
             }
@@ -422,35 +406,8 @@ public class Controller extends chemotaxis.sim.Controller {
                 visited[cur.x - 1][cur.y - 1] = true;
             }
         }
-        // visualize(grid, allPaths);
 
         return allPaths;
-    }
-
-    /**
-     * Visualize the results of the reverse BFS
-     *
-     * @param grid                game grid/map
-     * @param allPaths            the paths resulting from reverse bfs
-     *
-     */
-    private void visualize(ChemicalCell[][] grid, Map<Point, List<Point>> allPaths) {
-        System.out.println("~~~~~~~~");
-        for (int i=0; i<grid.length; i++){
-            for (int j=0; j<grid[0].length; j++){
-                Point temp = new Point(i+1,j+1);
-                if (grid[i][j].isBlocked())
-                    System.out.print("B  ");
-                else if (allPaths.keySet().contains(temp))
-                    System.out.print("X  ");
-                else if (this.target.equals(temp))
-                    System.out.print("G  ");
-                else
-                    System.out.print("-  ");
-            }
-            System.out.println();
-        }
-        System.out.println("~~~~~~~~");
     }
 
     // Testing the BFS (run with "java chemotaxis/g1/Controller" in /src)
@@ -498,7 +455,7 @@ public class Controller extends chemotaxis.sim.Controller {
         System.out.println("SHORTEST PATH:");
         System.out.println(path);
 
-        int turns = 4;
+        int turns = 3;
         Map<Point, List<Point>> allPaths = test.getAllPathsFromTarget(grid, turns);
         // System.out.println(allPaths);
         System.out.println("~~~~~~");
