@@ -35,16 +35,33 @@ public class Agent extends chemotaxis.sim.Agent {
     public Move makeMove(Integer randomNum, Byte previousState, ChemicalCell currentCell, Map<DirectionType, ChemicalCell> neighborMap) {
         Move agentMove = new Move();
         DirectionType dir = getBlueDirection(neighborMap, 0.99);
-        sp.println(dir.toString());
+        //sp.println(dir.toString());
         if(dir != DirectionType.CURRENT) {
             agentMove.currentState = getDirectionByte(dir);
             agentMove.directionType = dir;
         }
         else {
-            agentMove.directionType = getDirectionFromByte(previousState);
+            if(neighborMap.get(getDirectionFromByte(previousState)).isBlocked()) {
+                System.out.println("hehehe");
+                agentMove.directionType = getRandomDirection(getDirectionFromByte(previousState), randomNum);
+            }
+            else {
+                agentMove.directionType = getDirectionFromByte(previousState);
+            }
             agentMove.currentState = getDirectionByte(agentMove.directionType);
         }
         return agentMove;
+    }
+
+    private DirectionType getRandomDirection(DirectionType prev, Integer random) {
+        if(getDirectionByte(prev).intValue()%2 == 0) {
+            if(random%2==0) return DirectionType.EAST;
+            else return DirectionType.WEST;
+        }
+        else {
+            if(random%2==0) return DirectionType.SOUTH;
+            else return DirectionType.NORTH;
+        }
     }
 
     private DirectionType getBlueDirection(Map<DirectionType, ChemicalCell> neighborMap, Double blueThreshold) {
@@ -56,6 +73,17 @@ public class Agent extends chemotaxis.sim.Agent {
         }
 
         return absoluteBlue;
+    }
+
+    private DirectionType getGreenDirection(Map<DirectionType, ChemicalCell> neighborMap, Double greenThreshold) {
+        Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = getConcentrations(neighborMap);
+        DirectionType absoluteGreen = DirectionType.CURRENT;
+
+        for(DirectionType dir : concentrationMap.keySet()) {
+            if(concentrationMap.get(dir).get(ChemicalCell.ChemicalType.BLUE) >= greenThreshold) absoluteGreen = dir;
+        }
+
+        return absoluteGreen;
     }
 
     private DirectionType getRedDirection(Map<DirectionType, ChemicalCell> neighborMap, Double redThreshold) {
@@ -125,11 +153,11 @@ public class Agent extends chemotaxis.sim.Agent {
 
     private Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> getConcentrations(Map<DirectionType, ChemicalCell> neighborMap) {
         Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = new HashMap<>();
-        sp.println(neighborMap.keySet().toString());
+        //sp.println(neighborMap.keySet().toString());
         for(DirectionType dir : neighborMap.keySet()) {
             concentrationMap.put(dir, neighborMap.get(dir).getConcentrations());
         }
-        System.out.println(concentrationMap.toString());
+        //System.out.println(concentrationMap.toString());
         return concentrationMap;
     }
 }

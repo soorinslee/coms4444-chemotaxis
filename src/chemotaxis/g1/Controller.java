@@ -73,19 +73,16 @@ public class Controller extends chemotaxis.sim.Controller {
             // System.out.println("Size: " + this.allKPaths.keySet().size() + "\n" +
             // this.allKPaths.keySet());
             // System.out.println(this.allKPaths.keySet().contains(start));
-            //System.out.println("TURNS: \n" + myTurnPath + "\n \n");
+            System.out.println("TURNS: \n" + myPath + "\n \n");
         }
-        // if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid,
-        // this.myAllKPaths, chemicalsRemaining))) {
-        // System.out.println("Paths unequal\n");
-        // System.out.println(this.myPath + "\n");
-        // System.out.println(getOptimalPath(currentLocation, grid, this.myAllKPaths,
-        // chemicalsRemaining) + "\n");
-        // this.myAllKPaths = getAllPathsFromTarget(grid, chemicalsRemaining);
-        // this.myPath = getOptimalPath(currentLocation, grid, this.myAllKPaths,
-        // chemicalsRemaining);
-        // this.myTurnPath = getTurns(this.myPath);
-        // }
+         if(!isPathsEquivalent(this.myPath, getOptimalPath(currentLocation, grid,
+                 this.myAllKPaths, chemicalsRemaining))) {
+             System.out.println("Paths unequal\n");
+             System.out.println(this.myPath + "\n");
+             System.out.println(getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining) + "\n");
+             this.myPath = getOptimalPath(currentLocation, grid, this.myAllKPaths, chemicalsRemaining);
+             this.myTurnPath = getTurns(this.myPath);
+         }
 
         ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
 
@@ -122,6 +119,14 @@ public class Controller extends chemotaxis.sim.Controller {
     }
 
     private Boolean isPathsEquivalent(List<Point> p1, List<Point> p2) {
+        Set<Point> set = new LinkedHashSet<>(p1);
+        p1.clear();
+        p1.addAll(set);
+        set = new LinkedHashSet<>(p2);
+        p2.clear();
+        p2.addAll(set);
+        p1.remove(this.start);
+        p2.remove(this.start);
         if (!p1.isEmpty() && !p2.isEmpty()) {
             if (p1.size() != p2.size()) {
                 if (p1.size() > p2.size()) {
@@ -165,7 +170,10 @@ public class Controller extends chemotaxis.sim.Controller {
                 turnChemicalCells.add(path.get(i));
             }
         }
-        turnChemicalCells.remove(new Point(this.start.x, this.start.y));
+        Set<Point> set = new LinkedHashSet<>(turnChemicalCells);
+        turnChemicalCells.clear();
+        turnChemicalCells.addAll(set);
+        turnChemicalCells.remove(this.start);
         return turnChemicalCells;
     }
 
@@ -248,7 +256,9 @@ public class Controller extends chemotaxis.sim.Controller {
             }
         }
         // System.out.println("FINAL: \n" + finalPath + "\n \n");
-
+        Set<Point> set = new LinkedHashSet<>(finalPath);
+        finalPath.clear();
+        finalPath.addAll(set);
         return finalPath;
     }
 
@@ -275,7 +285,6 @@ public class Controller extends chemotaxis.sim.Controller {
                 }
                 cur = tmp;
                 Collections.reverse(path);
-                // System.out.println(path);
                 if (!allPaths.contains(path)) {
                     allPaths.add(path);
                     for (List<Point> tmpPath : allPaths) {
@@ -360,6 +369,7 @@ public class Controller extends chemotaxis.sim.Controller {
             next.prev = cur;
             neighbors.add(next);
         }
+
         Comparator<Node> turnsComparatorWon = (Node n1, Node n2) -> {
             return (n1.turns) - (n2.turns);
         };
