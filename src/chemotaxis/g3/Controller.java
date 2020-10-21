@@ -21,7 +21,7 @@ public class Controller extends chemotaxis.sim.Controller {
     private List<Point> path = null;
     private Point targetLocation = null;
     private Point expectedLocation = start;
-    private int steppingStone = 0;
+    private int steppingStone = 1;
     // private boolean oooo = true;
 
     /**
@@ -54,38 +54,56 @@ public class Controller extends chemotaxis.sim.Controller {
  	@Override
 	public ChemicalPlacement applyChemicals(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid) { 
         // TODO: instruct agent to make it to open field 
-
-        Boolean giveInstruction = false;
-        // if (!currentLocation.equals(expectedLocation)) {
-        if (!inVicinity(currentLocation,expectedLocation,1)) {
-            giveInstruction = true;
-            simPrinter.println("Expected: " + expectedLocation);
-            simPrinter.println("At: " + currentLocation);
-        }
-
         simPrinter.println("\nRound:" + currentTurn);
 
         // find path
         if (path == null) {
-            path = PathFinder.getPath(start, target, grid, size);
-            path = PathFinder.cleanPath(path);
+            path = PathFinder.getPath(currentLocation, target, grid, size);
+            // path = PathFinder.cleanPath(path);
             targetLocation = path.get(steppingStone++);
             // PathFinder.triPath(path);
         }
 
         // see if the cell has deviated from a path 
-        expectedLocation = PathFinder.getPath(currentLocation, target, grid, size).get(1);
+        // expectedLocation = PathFinder.getPath(currentLocation, target, grid, size).get(2);
 
         // cell's current location
         int currentX = currentLocation.x;
         int currentY = currentLocation.y;
 
-        // check to see if we have made it where we need to
-        if (inVicinity(currentLocation,targetLocation,4)) {
-        // if (currentLocation.equals(targetLocation)) {
+        Boolean giveInstruction = false;
+
+        if (currentLocation.x == targetLocation.x || currentLocation.y == targetLocation.y) {
             if (steppingStone < path.size())
                 targetLocation = path.get(steppingStone++);
         }
+
+        // check to see if we have made it where we need to
+        else if (!inVicinity(currentLocation,targetLocation,1)) {
+        // if (currentLocation.x == targetLocation.x || currentLocation.y == targetLocation.y) {
+            // giveInstruction =  true;
+            simPrinter.println("Next target location!");
+            simPrinter.println("current target location!" + targetLocation);
+            giveInstruction = true;
+            path = PathFinder.getPath(currentLocation, target, grid, size);
+            steppingStone = 1;
+            if (steppingStone < path.size())
+                targetLocation = path.get(steppingStone++);
+            simPrinter.println("new target: " + targetLocation);
+            simPrinter.println("currently at: " + currentLocation);
+        }
+
+
+        
+        // if (currentLocation.x != targetLocation.x || currentLocation.y != targetLocation.y) {
+        // if (currentLocation.equals(targetLocation)) {        
+        // if (!inVicinity(currentLocation,expectedLocation,1)) {
+        //     path = PathFinder.getPath(currentLocation, target, grid, size);
+        //     steppingStone = 0;
+        //     targetLocation = path.get(++steppingStone);
+        //     giveInstruction = true;
+        //     
+        // }
 
         // TODO: check to see if the agent went in the wrong direction 
 
@@ -104,43 +122,42 @@ public class Controller extends chemotaxis.sim.Controller {
         // if (oooo) {
         //     oooo = false;
         // simPrinter.println("\ncurrent turn: " + currentTurn);
-        // if ((giveInstruction) || ( !agentBlocked(currentLocation, grid)
-        if (giveInstruction) {
-            lastPlacement = placements;
-            lastPoint.setLocation(currentX, currentY);
-            ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
-            List<ChemicalType> chemicals = new ArrayList<>();
+        // if (giveInstruction) {
+        //     lastPlacement = placements;
+        //     lastPoint.setLocation(currentX, currentY);
+        //     ChemicalPlacement chemicalPlacement = new ChemicalPlacement();
+        //     List<ChemicalType> chemicals = new ArrayList<>();
 
-            double angle2 = Math.toDegrees(Math.atan2(target.y - currentY, target.x - currentX));
-            if (angle2 < 0) 
-                angle2 += 360;
-            placements = trans.getColor(angle2);
+        //     double angle2 = Math.toDegrees(Math.atan2(target.y - currentY, target.x - currentX));
+        //     if (angle2 < 0) 
+        //         angle2 += 360;
+        //     placements = trans.getColor(angle2);
 
-            // Break apart colors to see where to place, ex => "d_GB"
-            if (placements.charAt(0) == 'u') 
-                chemicalPlacement.location = new Point(currentX, currentY+1);
-            else if (placements.charAt(0) == 'd') 
-                chemicalPlacement.location = new Point(currentX, currentY-1);
-            else if (placements.charAt(0) == 'l') 
-                chemicalPlacement.location = new Point(currentX-1, currentY);
-            else if (placements.charAt(0) == 'r') 
-                chemicalPlacement.location = new Point(currentX+1, currentY);
-            else 
-                chemicalPlacement.location = new Point(currentX, currentY);
+        //     // Break apart colors to see where to place, ex => "d_GB"
+        //     if (placements.charAt(0) == 'u') 
+        //         chemicalPlacement.location = new Point(currentX, currentY+1);
+        //     else if (placements.charAt(0) == 'd') 
+        //         chemicalPlacement.location = new Point(currentX, currentY-1);
+        //     else if (placements.charAt(0) == 'l') 
+        //         chemicalPlacement.location = new Point(currentX-1, currentY);
+        //     else if (placements.charAt(0) == 'r') 
+        //         chemicalPlacement.location = new Point(currentX+1, currentY);
+        //     else 
+        //         chemicalPlacement.location = new Point(currentX, currentY);
 
-            if (placements.charAt(1) == 'R') 
-                chemicals.add(ChemicalType.RED);
-            if (placements.charAt(2) == 'G') 
-                chemicals.add(ChemicalType.GREEN);
-            if (placements.charAt(3) == 'B') 
-                chemicals.add(ChemicalType.BLUE);
+        //     if (placements.charAt(1) == 'R') 
+        //         chemicals.add(ChemicalType.RED);
+        //     if (placements.charAt(2) == 'G') 
+        //         chemicals.add(ChemicalType.GREEN);
+        //     if (placements.charAt(3) == 'B') 
+        //         chemicals.add(ChemicalType.BLUE);
         
-            chemicalPlacement.chemicals = chemicals;
+        //     chemicalPlacement.chemicals = chemicals;
             
-            return chemicalPlacement;
-        }
-
-        if (( !agentBlocked(currentLocation, grid)
+        //     return chemicalPlacement;
+        // }
+        // if (( !agentBlocked(currentLocation, grid)
+        if ((giveInstruction) || ( !agentBlocked(currentLocation, grid)
             && (lastPoint.equals(currentLocation) 
             || lastPoint.equals(new Point(-1,-1)) 
             || ((angle%90 == 0) && !(placements.equals(lastPlacement)))))) {
@@ -180,7 +197,7 @@ public class Controller extends chemotaxis.sim.Controller {
     } 	
 
     private boolean inVicinity(Point a, Point b, int c) {
-        return (Math.abs(a.x - b.x) <= c || Math.abs(a.y - b.y) <= c);
+        return (Math.abs(a.x - b.x) <= c && Math.abs(a.y - b.y) <= c);
     }
 
     private boolean agentBlocked(Point a, ChemicalCell[][] grid) {

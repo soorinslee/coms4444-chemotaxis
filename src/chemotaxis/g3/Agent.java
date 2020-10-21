@@ -74,9 +74,15 @@ public class Agent extends chemotaxis.sim.Agent {
         }
         if (prevState.equals("0+0*0+0.R") && instructionCheck == null) {
             simPrinter.println("Agent left with no instructionn, wandering");
+            // nextState="0+0*0+0.R".toCharArray();
+            // move.directionType = DirectionType.CURRENT;
             if (upOpen(neighborMap)) {
                 nextState = "0+0.0+1*R".toCharArray();
                 move.directionType = DirectionType.EAST;
+            }
+            else if (downOpen(neighborMap)) {
+                nextState = "0+0.0-1*R".toCharArray();
+                move.directionType = DirectionType.WEST;
             }
             else if (rightOpen(neighborMap)) {
                 nextState = "0+1*0+0.R".toCharArray();
@@ -86,10 +92,7 @@ public class Agent extends chemotaxis.sim.Agent {
                 nextState = "0-1*0+0.R".toCharArray();
                 move.directionType = DirectionType.NORTH;
             }
-            else if (downOpen(neighborMap)) {
-                nextState = "0+0.0-1*R".toCharArray();
-                move.directionType = DirectionType.WEST;
-            }
+            
         }
         else if (mobilityUp(prevState, neighborMap)) {
             simPrinter.println("Agent can + should move east/up");
@@ -131,10 +134,10 @@ public class Agent extends chemotaxis.sim.Agent {
             nextState = moveInX(nextState, prevState);
             move.directionType = DirectionType.SOUTH;
         }
-        else if (blocked(prevState, neighborMap)) {
-            nextState = moveWithBlock(prevState, neighborMap);
-            move.directionType = blockMoveDirection(nextState);
-        }
+        // else if (blocked(prevState, neighborMap)) {
+        //     nextState = moveWithBlock(prevState, neighborMap);
+        //     move.directionType = blockMoveDirection(nextState);
+        // }
         else {
             simPrinter.println("Agent was paused");
             nextState = "pause".toCharArray();
@@ -237,7 +240,7 @@ public class Agent extends chemotaxis.sim.Agent {
         return (state.charAt(1) == '-'
                 && ((state.charAt(8) == 'C' && state.charAt(0) <= state.charAt(2) - 1) 
                     || (state.charAt(8) == 'R' && state.charAt(0) == state.charAt(2) - 1))
-                && rightOpen(surroundings)
+                && leftOpen(surroundings)
         );
     }
 
@@ -450,6 +453,26 @@ public class Agent extends chemotaxis.sim.Agent {
         }
         return nextState;
     }
+
+    private Move followGradient(ChemicalCell cellPositon, Map<DirectionType, ChemicalCell> cellMap) {
+        Move gradientPath = new Move();
+        ChemicalType chemicalRed = ChemicalType.BLUE;
+        gradientPath.directionType = getGradientDirection(chemicalRed, cellPositon, cellMap);
+        return gradientPath;
+    }
+
+    private DirectionType getGradientDirection(ChemicalType chemicalColor, ChemicalCell cellPositon, Map<DirectionType, ChemicalCell> cellMap) {
+        DirectionType maxGradientDirection = DirectionType.CURRENT;
+        double highestConcentration = cellPositon.getConcentration(chemicalColor);
+		for(DirectionType directionType : cellMap.keySet()) {
+			if(highestConcentration < cellMap.get(directionType).getConcentration(chemicalColor)) {
+				highestConcentration = cellMap.get(directionType).getConcentration(chemicalColor);
+				maxGradientDirection = directionType;
+			}
+        }
+        return maxGradientDirection;
+    }
+
 
     private Boolean needsToRepeat(String state) {
         return state.charAt(8) == 'R';
