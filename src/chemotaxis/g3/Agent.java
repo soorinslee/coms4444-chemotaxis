@@ -665,6 +665,31 @@ public class Agent extends chemotaxis.sim.Agent {
             return 'Y';
         }
     }
+
+    public Move followGradient(ChemicalCell cellPositon, Map<DirectionType, ChemicalCell> cellMap) {
+
+        Move gradientPath = new Move();
+        
+        ChemicalType chemicalRed = ChemicalType.BLUE;
+        gradientPath.directionType = getGradientDirection(chemicalRed, cellPositon, cellMap);
+        return gradientPath;
+
+    }
+
+    private DirectionType getGradientDirection(ChemicalType chemicalColor, ChemicalCell cellPositon, Map<DirectionType, ChemicalCell> cellMap) {
+
+        DirectionType maxGradientDirection = DirectionType.CURRENT;
+
+        double highestConcentration = cellPositon.getConcentration(chemicalColor);
+		for(DirectionType directionType : cellMap.keySet()) {
+			if(highestConcentration < cellMap.get(directionType).getConcentration(chemicalColor)) {
+				highestConcentration = cellMap.get(directionType).getConcentration(chemicalColor);
+				maxGradientDirection = directionType;
+			}
+        }
+        
+        return maxGradientDirection;
+    }
     
 
 }
