@@ -58,15 +58,15 @@ public class Agent extends chemotaxis.sim.Agent {
         return absoluteBlue;
     }
 
-    private DirectionType getRedDirection(Map<DirectionType, ChemicalCell> neighborMap, Double blueThreshold) {
+    private DirectionType getRedDirection(Map<DirectionType, ChemicalCell> neighborMap, Double redThreshold) {
         Map<DirectionType, Map<ChemicalCell.ChemicalType, Double>> concentrationMap = getConcentrations(neighborMap);
         DirectionType absoluteRed = DirectionType.CURRENT;
 
         for(DirectionType dir : concentrationMap.keySet()) {
-            if(concentrationMap.get(dir).get(ChemicalCell.ChemicalType.BLUE) >= blueThreshold) absoluteBlue = dir;
+            if(concentrationMap.get(dir).get(ChemicalCell.ChemicalType.RED) == redThreshold) absoluteRed = dir;
         }
 
-        return absoluteBlue;
+        return absoluteRed;
     }
 
     private Byte getDirectionByte(DirectionType dir) {
