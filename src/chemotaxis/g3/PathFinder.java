@@ -5,13 +5,14 @@ import java.util.*;
 import chemotaxis.sim.ChemicalCell;
 import chemotaxis.sim.SimPrinter;
 import java.lang.Math;
+import chemotaxis.g3.Language.Translator;
 
 public class PathFinder {
 
+    private Translator trans = Translator.getInstance();
     private static SimPrinter simPrinter = new SimPrinter(true);
     
     public PathFinder(Point start, Point target, ChemicalCell[][] grid, Integer size) {
-        // this.path = getPath(start, target, grid, size);
         ;
     }
 
@@ -51,7 +52,6 @@ public class PathFinder {
             pt = parents.get(pt);
         }
 
-        // simPrinter.println(path);
         return path;
     }
 
@@ -81,8 +81,6 @@ public class PathFinder {
             }
         }
 
-        // simPrinter.println("Children: " + Arrays.toString(children.toArray()));
-
         return children;
     }
 
@@ -92,21 +90,6 @@ public class PathFinder {
         Point c = null;
         double angle = 45f;
         List<Point> ret = new ArrayList<Point>();
-
-        // ret.add(path.get(0));
-        // for (int i = 1; i < path.size() - 1; i++) {
-        //     a = path.get(i - 1);
-        //     b = path.get(i);
-        //     c = path.get(i + 1);
-        //     if (sameAngle(a,b,c)) {
-        //         continue;
-        //     }
-        //     // else if (sameDirection(a,b,c)) {
-        //     //     continue;
-        //     // }
-        //     ret.add(b);
-        // }
-        // ret.add(path.get(path.size()-1));
 
         for (int i = 2; i < path.size() - 2; i++) {
             a = path.get(i - 2);
@@ -118,34 +101,7 @@ public class PathFinder {
             ret.add(b);
         }
         ret.add(path.get(path.size()-1));
-
-        // List<Point> ret2 = new ArrayList<Point>();
-        // for (int i = 2; i < ret.size() - 2; i++) {
-        //     a = ret.get(i - 2);
-        //     b = ret.get(i);
-        //     c = ret.get(i + 2);
-        //     if (sameDirection(a,b,c)) {
-        //         continue;
-        //     }
-        //     ret2.add(b);
-        // }
-        // ret2.add(path.get(path.size()-1));
-
-        // List<Point> ret2 = new ArrayList<Point>();
-        // for (int i = 2; i < ret.size() - 2; i++) {
-        //     a = ret.get(i - 2);
-        //     b = ret.get(i);
-        //     c = ret.get(i + 2);
-        //     if (sameDirection(a,b,c)) {
-        //         continue;
-        //     }
-        //     ret2.add(b);
-        // }
-        // ret2.add(path.get(path.size()-1));
-        // System.out.println(ret2.size());
-
         return ret;
-        
     }
 
     public static List<Point> triPath(List<Point> path) {
@@ -172,11 +128,5 @@ public class PathFinder {
             return true;
         return false;
     }
-
-    // public static Point blockedBetween(Point a, Point b) {
-    //     return new Point();
-    // }
-
-    
 
 }
