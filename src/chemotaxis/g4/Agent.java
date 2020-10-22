@@ -39,13 +39,9 @@ public class Agent extends chemotaxis.sim.Agent {
 
     
       ChemicalType chosenChemicalType = ChemicalType.BLUE;
-      
+    
       //detect if any chemical is placed by controller
-      int blockedNeighbors = 0;
       for(DirectionType directionType : neighborMap.keySet()) {
-         if (neighborMap.get(directionType).isBlocked()) {
-          blockedNeighbors += 1;
-         }
          if (neighborMap.get(directionType).getConcentration(ChemicalType.BLUE) == 1) {
            
             move.currentState = (byte)directionType.ordinal();
@@ -76,6 +72,7 @@ public class Agent extends chemotaxis.sim.Agent {
          }
         }
        }
+
 
       if (move.currentState < 0){ //following path
 
@@ -124,80 +121,122 @@ public class Agent extends chemotaxis.sim.Agent {
         return move;
       } 
 
+      previousState = previousState;
+      int wallDir = 0;
+      if (previousState >= 50 && previousState < 100) {
+        wallDir = (previousState - 50) / 10;
+        previousState = (byte)((previousState % 10) + 50);
+      }
       
+      //determine if the nubmer and location of blocked neighbors
+      int w = 0;
+      int b = 0;
+      if (previousState % 10 < 2){
+        if (neighborMap.get(DirectionType.WEST).isBlocked()) {w = w+1;}
+        if (neighborMap.get(DirectionType.EAST).isBlocked()) {w = w+1;}
+      }
+      if (previousState % 10 >=2){
+        if (neighborMap.get(DirectionType.NORTH).isBlocked()) {w = w+1;}
+        if (neighborMap.get(DirectionType.SOUTH).isBlocked()) {w = w+1;}
+      }
+
+      if (w == 1){
+        if (neighborMap.get(DirectionType.NORTH).isBlocked()) {b = 0;}
+        if (neighborMap.get(DirectionType.SOUTH).isBlocked()) {b = 10;}
+        if (neighborMap.get(DirectionType.EAST).isBlocked()) {b = 20;}
+        if (neighborMap.get(DirectionType.WEST).isBlocked()) {b = 30;}
+      }
+      
+      //System.out.println(previousState);
       ////no chemical placed so far, agent navigates itself
       int[] pairs = new int[] {1, 0, 3, 2};
-      if (previousState < 5) {
-        DirectionType previous_direction = DirectionType.values()[previousState];
-        if (neighborMap.get(previous_direction).isBlocked()) { //wall encountered, randomly make a turn
-          //System.out.println("wall");
+
+      //if was previously moving along a wall
+      if (previousState >= 50) {
+        //int leftDir = (int)left[previousState % 50];
+        //DirectionType leftNeighbor = DirectionType.values()[leftDir];
+        //int rightDir = (int)right[previousState % 50];
+        //DirectionType rightNeighbor = DirectionType.values()[rightDir];
+        boolean prevTwoWalls = (previousState >= 100) && (w<2);
+        boolean prevOneWall = (previousState < 100) && (w==0);
+
+        //if an opening is found in the wall, randomly make a turn (decice to turn left/right or move forward)
+        if (prevTwoWalls || prevOneWall) {
+          //System.out.println("opening found");
           Random rand = new Random();
           boolean makeTurn = false;
           for (int i = 0; i < 20; i++){
             int randomDir = rand.nextInt(4);
             DirectionType dir = DirectionType.values()[randomDir];
-            //System.out.println(dir);
-            //System.out.println((int)pairs[previousState]);
-            //System.out.println(randomDir);
-            if (neighborMap.get(dir).isOpen() && ((int)pairs[previousState]!=randomDir)){ //turn left or turn right
+            if (neighborMap.get(dir).isOpen() && ((int)pairs[previousState % 50]!=randomDir) && ((int)pairs[wallDir]!=randomDir)){ //turn left or turn right
+              //System.out.println(dir);
               move.directionType = dir;
-              int curState = randomDir;
+              int curState = randomDir + w*50 + b;
+              move.currentState = (byte)curState;
+              makeTurn = true;
+              return move;
+            }
+            /*if (!makeTurn) { //deadend, turn around 180 deg
+              move.currentState = (byte)(pairs[previousState % 50] + w*50);
+              move.directionType = DirectionType.values()[move.currentState % 50];
+            }*/
+            
+          }
+          
+        } /*else { //no opening on wall
+          //continue to move forward if not dead end
+          DirectionType previous_direction = DirectionType.values()[previousState % 50];
+          if (neighborMap.get(previous_direction).isOpen()) {
+            move.currentState = (byte)(previousState % 50 + w*50);
+            move.directionType = DirectionType.values()[move.currentState % 50];
+            return move;
+          }
+        }*/
+      }
+
+      
+      if (previousState < 5 || previousState >= 50) {
+        DirectionType previous_direction = DirectionType.values()[previousState % 50];
+        if (neighborMap.get(previous_direction).isBlocked()) { //wall encountered, randomly make a turn
+          //System.out.println("wall");
+          Random rand = new Random();
+          boolean makeTurn = false;
+          for (int i = 0; i < 30; i++){
+            int randomDir = rand.nextInt(4);
+            DirectionType dir = DirectionType.values()[randomDir];
+            if (neighborMap.get(dir).isOpen() && (((int)pairs[previousState % 50]) != randomDir)){ //turn left or turn right
+              move.directionType = dir;
+              int curState = randomDir + w*50 + b;
               move.currentState = (byte)curState;
               makeTurn = true;
               break;
-            }
-            if (!makeTurn) { //deadend, turn around 180 deg
-              //System.out.println("turning 180");
-              move.currentState = (byte)pairs[previousState];
-              move.directionType = DirectionType.values()[move.currentState];
-            }
-            
+            }   
           }
+          if (!makeTurn) { //deadend, turn around 180 deg
+              //System.out.println("turning 180");
+              move.currentState = (byte)(pairs[previousState % 50] + w*50 + b);
+              move.directionType =  DirectionType.values()[(move.currentState - b) % 50];
+            }
           return move;
         } else { //no wall ahead, continue to move in same direction
-          move.currentState = previousState;
-          move.directionType = DirectionType.values()[previousState];
+          move.currentState = (byte)(previousState % 50 + w*50 + b);
+          move.directionType = DirectionType.values()[(move.currentState - b) % 50];
           return move;
         }
       }
-      
-      /*
-      if (previousState > 5) {
-        DirectionType previous_direction = DirectionType.values()[previousState - 5];
-        if (neighborMap.get(previous_direction).isBlocked()) { //wall encountered, randomly make a turn
-          System.out.println("wall");
-          Random rand = new Random();
-          boolean makeTurn = false;
-          for (int i = 0; i < 15; i++){
-            int randomDir = rand.nextInt(4);
-            DirectionType dir = DirectionType.values()[randomDir];
-            System.out.println(dir);
-            System.out.println((int)pairs[previousState - 5]);
-            System.out.println(randomDir);
-            if (neighborMap.get(dir).isOpen() && ((int)pairs[previousState - 5]!=randomDir)){ //turn left or turn right
-              move.directionType = dir;
-              int curState = randomDir + 5;
-              move.currentState = (byte)curState;
-              makeTurn = true;
-              break;
-            }
-            if (!makeTurn) { //deadend, turn around 180 deg
-              System.out.println("turning 180");
-              move.currentState = (byte)pairs[previousState - 5];
-              move.directionType = DirectionType.values()[move.currentState];
-            }
-            
-          }
-          return move;
-        } else { //no wall ahead, continue to move in same direction
-          move.currentState = previousState;
-          move.directionType = DirectionType.values()[previousState - 5];
-          return move;
-        }
-      } */
 
-      //move.directionType = DirectionType.values()[move.currentState];
-      return null;
+
+      move.currentState = (byte)(previousState % 50 + w*50 + b);
+      move.directionType =  DirectionType.values()[(move.currentState - b) % 50];
+      /*for(int i=0; i<4; i++) {
+         DirectionType dir = DirectionType.values()[i];
+         if (neighborMap.get(dir).isOpen() && (dir != DirectionType.values()[previousState % 50])){
+          move.directionType = dir;
+          move.currentState = (byte)(i + w*50);
+
+         }
+      }*/
+      return move;
       //if no chemical placed, agent navigates itself and explore around
       //case I: not following a wall, continue to head 
       //if (blockedNeighbors == 0) {
@@ -209,7 +248,5 @@ public class Agent extends chemotaxis.sim.Agent {
       //randomDirection = randomNum % 4;
 
       //neighborMap.keySet()
-
-
-   }
+    }
 }

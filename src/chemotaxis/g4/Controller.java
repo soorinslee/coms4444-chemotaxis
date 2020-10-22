@@ -78,7 +78,7 @@ public class Controller extends chemotaxis.sim.Controller {
 
 			Timer timer = new Timer();
 
-			int timeout = 950;
+			int timeout = 900;
 
 			try {
 				if(!timer.isAlive())
