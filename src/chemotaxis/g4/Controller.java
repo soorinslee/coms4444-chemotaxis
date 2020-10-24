@@ -37,6 +37,7 @@ public class Controller extends chemotaxis.sim.Controller {
 	private ArrayList<DirectionChange> directionChanges;
 
 	boolean previouslyTimedOut = false;
+	boolean currentlyTimedOut = false;
 
    /**
     * Controller constructor
@@ -76,20 +77,9 @@ public class Controller extends chemotaxis.sim.Controller {
 		if (currentTurn == 1 || bestPath[this.targetX][this.targetY].getParent() == null) {
 			//System.out.println("calculating path...");
 
-			Timer timer = new Timer();
-
-			int timeout = 900;
-
-			try {
-				if(!timer.isAlive())
-					timer.start();
-				timer.callStart(() -> {return findPath(currentTurn, chemicalsRemaining, currentLocation, grid, !this.previouslyTimedOut);});
-				timer.callWait(timeout);
-			}
-			catch(Exception e) {
-				// System.out.println(currentTurn + " TIMED OUT!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				this.previouslyTimedOut = true;
-			}
+			previouslyTimedOut = currentlyTimedOut;
+			currentlyTimedOut = true;
+			currentlyTimedOut = !findPath(currentTurn, chemicalsRemaining, currentLocation, grid, !this.previouslyTimedOut);
 
 		}
 
@@ -160,7 +150,7 @@ public class Controller extends chemotaxis.sim.Controller {
    }
 
 
-   private int findPath(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid, boolean searchDiagonals){
+   private boolean findPath(Integer currentTurn, Integer chemicalsRemaining, Point currentLocation, ChemicalCell[][] grid, boolean searchDiagonals){
 		this.bestPath = new Node[this.size][this.size];
 
 		for (int i = 0; i < this.size; i++) {
@@ -683,7 +673,7 @@ public class Controller extends chemotaxis.sim.Controller {
 			// }
 		}
 
-		return 1;
+		return true;
 
    }
 
